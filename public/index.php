@@ -27,9 +27,23 @@ $routes = [
     '/auth/register_owner' => __DIR__ . '/../app/pages/auth/register_owner.php',
     '/auth/logout' => __DIR__ . '/../app/pages/auth/logout.php',
     '/auth/forgot_password' => __DIR__ . '/../app/pages/auth/forgot_password.php',
+    '/admin/dashboard' => __DIR__ . '/../app/pages/admin/dashboard.php',
+    '/admin/shops/applications' => __DIR__ . '/../app/pages/admin/shop_applications.php',
+    '/admin/users' => __DIR__ . '/../app/pages/admin/users.php',
+    '/admin/moderation/products' => __DIR__ . '/../app/pages/admin/moderation_products.php',
+    '/admin/moderation/portfolio' => __DIR__ . '/../app/pages/admin/moderation_portfolio.php',
+    '/admin/moderation/reviews' => __DIR__ . '/../app/pages/admin/moderation_reviews.php',
+    '/admin/dss/config' => __DIR__ . '/../app/pages/admin/dss_config.php',
+    '/admin/reports' => __DIR__ . '/../app/pages/admin/reports.php',
+    '/admin/audit-logs' => __DIR__ . '/../app/pages/admin/audit_logs.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
+    if (preg_match('#^/admin/shops/(\d+)/review$#', $path, $matches)) {
+        $_GET['shop_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/admin/shop_review.php';
+        exit;
+    }
     http_response_code(404);
     echo 'Page not found.';
     exit;
