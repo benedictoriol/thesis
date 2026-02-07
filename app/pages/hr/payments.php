@@ -2,12 +2,11 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
-require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 
-require_role(['hr']);
+require_role(['owner', 'hr']);
 
-$pageTitle = 'Payment Reviews';
+$pageTitle = 'Payments Verification';
 
 function get_table_columns(PDO $pdo, string $table): array
 {
@@ -30,7 +29,6 @@ function find_column(array $columns, array $candidates): ?string
     return null;
 }
 
-$currentUser = current_user();
 $errors = [];
 $successMessage = flash_get('success');
 
@@ -54,63 +52,6 @@ if (!$paymentsColumns || !$ordersColumns) {
     $errors[] = 'Payments are not available right now.';
 } elseif (!$reviewsColumns) {
     $errors[] = 'Payment reviews are not available right now.';
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
-    if (!csrf_verify()) {
-        $errors[] = 'Invalid security token.';
-    } else {
-        $action = $_POST['action'] ?? '';
-        if ($action === 'review') {
-            $paymentId = (int) ($_POST['payment_id'] ?? 0);
-            $decision = strtolower(trim((string) ($_POST['decision'] ?? '')));
-            $reason = trim((string) ($_POST['reason'] ?? ''));
-
-            if ($paymentId <= 0) {
-                $errors[] = 'Invalid payment selection.';
-            } elseif (!in_array($decision, ['verified', 'rejected'], true)) {
-                $errors[] = 'Please choose a valid decision.';
-            } elseif ($reason === '') {
-                $errors[] = 'A reason is required for the review.';
-            } else {
-                try {
-                    $stmt = db()->prepare('SELECT id, status FROM payments WHERE id = :id LIMIT 1');
-                    $stmt->execute(['id' => $paymentId]);
-                    $paymentRow = $stmt->fetch();
-
-                    if (!$paymentRow) {
-                        $errors[] = 'Payment not found.';
-                    } elseif (strtolower((string) $paymentRow['status']) !== 'pending_proof') {
-                        $errors[] = 'Only payments pending proof can be reviewed.';
-                    } else {
-                        $reviewStmt = db()->prepare(
-                            'INSERT INTO payment_reviews (payment_id, reviewed_by_user_id, decision, reason, reviewed_at)
-                             VALUES (:payment_id, :reviewed_by_user_id, :decision, :reason, :reviewed_at)'
-                        );
-                        $reviewStmt->execute([
-                            'payment_id' => $paymentId,
-                            'reviewed_by_user_id' => $currentUser['id'],
-                            'decision' => $decision,
-                            'reason' => $reason,
-                            'reviewed_at' => gmdate('Y-m-d H:i:s'),
-                        ]);
-
-                        $updateStmt = db()->prepare('UPDATE payments SET status = :status WHERE id = :id');
-                        $updateStmt->execute([
-                            'status' => $decision,
-                            'id' => $paymentId,
-                        ]);
-
-                        flash_set('success', 'Payment review saved.');
-                        header('Location: /hr/payments');
-                        exit;
-                    }
-                } catch (PDOException $exception) {
-                    $errors[] = 'Unable to save the review right now.';
-                }
-            }
-        }
-    }
 }
 
 if (!$errors) {
@@ -190,8 +131,8 @@ require __DIR__ . '/../../includes/header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
-        <h1 class="h4 mb-1">Payment Reviews</h1>
-        <p class="text-muted mb-0">Verify or reject client payment proofs.</p>
+        <h1 class="h4 mb-1">Payments Verification</h1>
+        <p class="text-muted mb-0">Review payment submissions and COD receipts.</p>
     </div>
 </div>
 
@@ -217,6 +158,7 @@ require __DIR__ . '/../../includes/header.php';
                         <th>Status</th>
                         <th>Proof</th>
                         <th>Review</th>
+                        <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -242,20 +184,7 @@ require __DIR__ . '/../../includes/header.php';
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <?php if ($status === 'pending_proof'): ?>
-                                    <form method="post" class="d-flex flex-column gap-2">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="action" value="review">
-                                        <input type="hidden" name="payment_id" value="<?= htmlspecialchars((string) $paymentId, ENT_QUOTES, 'UTF-8') ?>">
-                                        <select name="decision" class="form-select form-select-sm" required>
-                                            <option value="">Choose</option>
-                                            <option value="verified">Verify</option>
-                                            <option value="rejected">Reject</option>
-                                        </select>
-                                        <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Reason" required></textarea>
-                                        <button class="btn btn-sm btn-primary" type="submit">Submit</button>
-                                    </form>
-                                <?php elseif ($review): ?>
+                                <?php if ($review): ?>
                                     <div class="small text-muted">Last: <?= htmlspecialchars($review['decision'], ENT_QUOTES, 'UTF-8') ?></div>
                                     <?php if (!empty($review['reason'])): ?>
                                         <div class="small">Reason: <?= htmlspecialchars($review['reason'], ENT_QUOTES, 'UTF-8') ?></div>
@@ -263,6 +192,9 @@ require __DIR__ . '/../../includes/header.php';
                                 <?php else: ?>
                                     <span class="text-muted">No review</span>
                                 <?php endif; ?>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" href="/hr/payments/<?= htmlspecialchars((string) $paymentId, ENT_QUOTES, 'UTF-8') ?>">View</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

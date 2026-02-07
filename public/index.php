@@ -112,6 +112,11 @@ if (!array_key_exists($path, $routes)) {
         require __DIR__ . '/../app/pages/hr/quotes/request_view.php';
         exit;
     }
+    if (preg_match('#^/hr/payments/(\\d+)$#', $path, $matches)) {
+        $_GET['payment_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/payment_view.php';
+        exit;
+    }
     if (preg_match('#^/hr/quotes/(\\d+)/revise$#', $path, $matches)) {
         $_GET['quote_id'] = $matches[1];
         require __DIR__ . '/../app/pages/hr/quotes/revise.php';
