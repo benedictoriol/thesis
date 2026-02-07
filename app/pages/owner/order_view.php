@@ -758,6 +758,7 @@ require __DIR__ . '/../../includes/header.php';
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h2 class="h6">Job tickets</h2>
+                    <a class="small d-inline-block mb-3" href="/owner/orders/<?= (int) $orderId ?>/tickets">View production tickets</a>
                     <?php if (!table_exists('order_job_tickets')): ?>
                         <p class="text-muted mb-0">Job tickets are not configured yet.</p>
                     <?php else: ?>

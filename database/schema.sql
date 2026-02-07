@@ -485,6 +485,33 @@ CREATE TABLE IF NOT EXISTS order_job_tickets (
     INDEX idx_order_job_tickets_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS job_tickets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    step ENUM('digitizing', 'hooping', 'stitching', 'trimming', 'qc', 'packing') NOT NULL,
+    assigned_to_user_id INT NOT NULL,
+    status ENUM('queued', 'working', 'for_review', 'done') NOT NULL DEFAULT 'queued',
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_job_tickets_order (order_id),
+    INDEX idx_job_tickets_assigned (assigned_to_user_id),
+    INDEX idx_job_tickets_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS job_updates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    status ENUM('queued', 'working', 'for_review', 'done') NOT NULL,
+    note TEXT NULL,
+    photo_path VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES job_tickets(id) ON DELETE CASCADE,
+    INDEX idx_job_updates_ticket (ticket_id),
+    INDEX idx_job_updates_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS order_proofs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
