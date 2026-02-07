@@ -52,6 +52,9 @@ $routes = [
     '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
     '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
     '/owner/verification/status' => __DIR__ . '/../app/pages/owner/verification_status.php',
+    '/owner/shop/profile' => __DIR__ . '/../app/pages/owner/shop_profile.php',
+    '/owner/shop/hours' => __DIR__ . '/../app/pages/owner/shop_hours.php',
+    '/owner/shop/availability' => __DIR__ . '/../app/pages/owner/shop_availability.php',
 ];
 
 if (!array_key_exists($path, $routes)) {

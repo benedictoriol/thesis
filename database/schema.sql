@@ -116,6 +116,26 @@ CREATE TABLE IF NOT EXISTS shop_verification (
     FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS shop_hours (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
+    open_time TIME NULL,
+    close_time TIME NULL,
+    is_closed TINYINT(1) NOT NULL DEFAULT 0,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_shop_day (shop_id, day_of_week)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS shop_availability (
+    shop_id INT PRIMARY KEY,
+    accepting_orders TINYINT(1) NOT NULL DEFAULT 1,
+    accepting_quotes TINYINT(1) NOT NULL DEFAULT 1,
+    accepting_custom TINYINT(1) NOT NULL DEFAULT 1,
+    accepting_rush TINYINT(1) NOT NULL DEFAULT 0,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE IF NOT EXISTS shop_documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     shop_id INT NOT NULL,
