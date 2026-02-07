@@ -43,6 +43,8 @@ $routes = [
     '/client/search' => __DIR__ . '/../app/pages/client/search.php',
     '/client/customize' => __DIR__ . '/../app/pages/client/customize.php',
     '/client/designs' => __DIR__ . '/../app/pages/client/designs.php',
+    '/client/posts' => __DIR__ . '/../app/pages/client/posts.php',
+    '/client/posts/create' => __DIR__ . '/../app/pages/client/post_create.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -84,6 +86,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/client/designs/(\\d+)$#', $path, $matches)) {
         $_GET['design_id'] = $matches[1];
         require __DIR__ . '/../app/pages/client/design_view.php';
+        exit;
+    }
+    if (preg_match('#^/client/posts/(\\d+)$#', $path, $matches)) {
+        $_GET['post_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/post_view.php';
         exit;
     }
     http_response_code(404);

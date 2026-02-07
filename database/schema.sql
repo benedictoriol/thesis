@@ -249,3 +249,75 @@ CREATE TABLE IF NOT EXISTS custom_design_layers (
     INDEX idx_custom_design_layers_design (design_id),
     INDEX idx_custom_design_layers_type (layer_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS client_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    item_type ENUM('tshirt', 'cap', 'bag', 'logo', 'other') NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    budget_min DECIMAL(10, 2) NULL,
+    budget_max DECIMAL(10, 2) NULL,
+    deadline_date DATE NULL,
+    town_text VARCHAR(255) NULL,
+    status ENUM('open', 'closed', 'expired', 'converted') NOT NULL DEFAULT 'open',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_client_posts_client (client_user_id),
+    INDEX idx_client_posts_status (status),
+    INDEX idx_client_posts_deadline (deadline_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS post_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
+    INDEX idx_post_files_post (post_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS post_design_refs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    design_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (design_id) REFERENCES custom_designs(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_post_design (post_id, design_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS post_offers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    staff_user_id INT NOT NULL,
+    offer_price DECIMAL(10, 2) NOT NULL,
+    message TEXT NULL,
+    status ENUM('sent', 'accepted', 'rejected') NOT NULL DEFAULT 'sent',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_post_offers_post (post_id),
+    INDEX idx_post_offers_shop (shop_id),
+    INDEX idx_post_offers_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    post_id INT NULL,
+    offer_id INT NULL,
+    status ENUM('pending', 'in_progress', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE SET NULL,
+    FOREIGN KEY (offer_id) REFERENCES post_offers(id) ON DELETE SET NULL,
+    INDEX idx_orders_client (client_user_id),
+    INDEX idx_orders_shop (shop_id),
+    INDEX idx_orders_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
