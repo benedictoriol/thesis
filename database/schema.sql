@@ -32,6 +32,44 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type ENUM(
+        'message_received',
+        'quote_request_received',
+        'quote_sent',
+        'quote_accepted',
+        'quote_rejected',
+        'order_placed',
+        'order_accepted',
+        'order_rejected',
+        'order_status_changed',
+        'payment_proof_uploaded',
+        'payment_verified',
+        'payment_rejected',
+        'low_stock',
+        'hiring_application'
+    ) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    link_type ENUM(
+        'conversation',
+        'quote_request',
+        'quote',
+        'order',
+        'payment',
+        'post',
+        'application'
+    ) NULL,
+    link_id INT NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user_read (user_id, is_read),
+    INDEX idx_notifications_user_created (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS shops (
     id INT AUTO_INCREMENT PRIMARY KEY,
     owner_user_id INT NOT NULL,

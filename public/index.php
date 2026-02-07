@@ -36,12 +36,18 @@ $routes = [
     '/admin/dss/config' => __DIR__ . '/../app/pages/admin/dss_config.php',
     '/admin/reports' => __DIR__ . '/../app/pages/admin/reports.php',
     '/admin/audit-logs' => __DIR__ . '/../app/pages/admin/audit_logs.php',
+    '/notifications' => __DIR__ . '/../app/pages/notifications/index.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/admin/shops/(\d+)/review$#', $path, $matches)) {
         $_GET['shop_id'] = $matches[1];
         require __DIR__ . '/../app/pages/admin/shop_review.php';
+        exit;
+    }
+    if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
+        $_GET['notification_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/notifications/view.php';
         exit;
     }
     http_response_code(404);
