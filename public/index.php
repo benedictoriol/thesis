@@ -57,7 +57,9 @@ $routes = [
     '/hr/inventory/alerts' => __DIR__ . '/../app/pages/hr/inventory/alerts.php',
     '/hr/hiring' => __DIR__ . '/../app/pages/hr/hiring.php',
     '/hr/hiring/create' => __DIR__ . '/../app/pages/hr/hiring_create.php',
+    '/hr/timesheets' => __DIR__ . '/../app/pages/hr/timesheets.php',
     '/hr/quotes/requests' => __DIR__ . '/../app/pages/hr/quotes/requests.php',
+    '/hr/payroll/periods' => __DIR__ . '/../app/pages/hr/payroll/periods.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
     '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
     '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
@@ -77,6 +79,7 @@ $routes = [
     '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
     '/owner/orders' => __DIR__ . '/../app/pages/owner/orders.php',
     '/employee/tickets' => __DIR__ . '/../app/pages/employee/tickets.php',
+    '/employee/payslips' => __DIR__ . '/../app/pages/employee/payslips.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -128,6 +131,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/hr/quotes/(\\d+)/revise$#', $path, $matches)) {
         $_GET['quote_id'] = $matches[1];
         require __DIR__ . '/../app/pages/hr/quotes/revise.php';
+        exit;
+    }
+    if (preg_match('#^/hr/payroll/periods/(\\d+)$#', $path, $matches)) {
+        $_GET['period_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/payroll/period_view.php';
         exit;
     }
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {

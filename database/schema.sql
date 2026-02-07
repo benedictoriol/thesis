@@ -603,3 +603,49 @@ CREATE TABLE IF NOT EXISTS payment_reviews (
     FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_payment_reviews_payment (payment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS timesheets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    user_id INT NOT NULL,
+    work_date DATE NOT NULL,
+    hours DECIMAL(6, 2) NOT NULL DEFAULT 0,
+    notes TEXT NULL,
+    approved_by_user_id INT NULL,
+    status ENUM('pending', 'approved') NOT NULL DEFAULT 'pending',
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_timesheets_shop (shop_id),
+    INDEX idx_timesheets_user (user_id),
+    INDEX idx_timesheets_status (status),
+    INDEX idx_timesheets_work_date (work_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS payroll_periods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status ENUM('draft', 'finalized') NOT NULL DEFAULT 'draft',
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    INDEX idx_payroll_periods_shop (shop_id),
+    INDEX idx_payroll_periods_status (status),
+    INDEX idx_payroll_periods_dates (start_date, end_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS payroll_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    period_id INT NOT NULL,
+    user_id INT NOT NULL,
+    base_pay DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    overtime_pay DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    bonus DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    deductions DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    net_pay DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (period_id) REFERENCES payroll_periods(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_payroll_entries_period (period_id),
+    INDEX idx_payroll_entries_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
