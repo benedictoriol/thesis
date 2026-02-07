@@ -10,6 +10,28 @@ CREATE TABLE IF NOT EXISTS users (
     last_login DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS client_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    full_address_text VARCHAR(255) NOT NULL,
+    town_text VARCHAR(255) NULL,
+    phone VARCHAR(50) NULL,
+    is_default TINYINT(1) NOT NULL DEFAULT 0,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_client_addresses_client (client_user_id),
+    INDEX idx_client_addresses_default (client_user_id, is_default)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS client_payment_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    method ENUM('cash_on_delivery', 'bank_transfer', 'e_wallet', 'card', 'other') NOT NULL,
+    details_text TEXT NULL,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_client_payment_client (client_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS user_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,

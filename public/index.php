@@ -45,6 +45,9 @@ $routes = [
     '/client/designs' => __DIR__ . '/../app/pages/client/designs.php',
     '/client/posts' => __DIR__ . '/../app/pages/client/posts.php',
     '/client/posts/create' => __DIR__ . '/../app/pages/client/post_create.php',
+    '/client/profile' => __DIR__ . '/../app/pages/client/profile.php',
+    '/client/orders' => __DIR__ . '/../app/pages/client/orders.php',
+    '/client/quotations' => __DIR__ . '/../app/pages/client/quotations.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
