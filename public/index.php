@@ -40,6 +40,7 @@ $routes = [
     '/messages' => __DIR__ . '/../app/pages/messages/index.php',
     '/client/home' => __DIR__ . '/../app/pages/client/home.php',
     '/client/product_view' => __DIR__ . '/../app/pages/client/product_view.php',
+    '/client/search' => __DIR__ . '/../app/pages/client/search.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
