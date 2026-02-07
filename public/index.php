@@ -58,6 +58,7 @@ $routes = [
     '/hr/hiring' => __DIR__ . '/../app/pages/hr/hiring.php',
     '/hr/hiring/create' => __DIR__ . '/../app/pages/hr/hiring_create.php',
     '/hr/timesheets' => __DIR__ . '/../app/pages/hr/timesheets.php',
+    '/hr/productivity' => __DIR__ . '/../app/pages/hr/productivity.php',
     '/hr/quotes/requests' => __DIR__ . '/../app/pages/hr/quotes/requests.php',
     '/hr/payroll/periods' => __DIR__ . '/../app/pages/hr/payroll/periods.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
@@ -116,6 +117,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/hr/hiring/(\\d+)/applicants$#', $path, $matches)) {
         $_GET['post_id'] = $matches[1];
         require __DIR__ . '/../app/pages/hr/hiring_applicants.php';
+        exit;
+    }
+    if (preg_match('#^/hr/productivity/(\\d+)$#', $path, $matches)) {
+        $_GET['employee_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/productivity_view.php';
         exit;
     }
     if (preg_match('#^/hr/quotes/requests/(\\d+)$#', $path, $matches)) {

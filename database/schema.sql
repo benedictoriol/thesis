@@ -649,3 +649,19 @@ CREATE TABLE IF NOT EXISTS payroll_entries (
     INDEX idx_payroll_entries_period (period_id),
     INDEX idx_payroll_entries_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS productivity_metrics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    user_id INT NOT NULL,
+    metric_date DATE NOT NULL,
+    jobs_done INT NOT NULL DEFAULT 0,
+    avg_turnaround_hours DECIMAL(6, 2) NOT NULL DEFAULT 0,
+    late_jobs INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_productivity_metrics_shop (shop_id),
+    INDEX idx_productivity_metrics_user (user_id),
+    INDEX idx_productivity_metrics_date (metric_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
