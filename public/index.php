@@ -49,6 +49,9 @@ $routes = [
     '/client/orders' => __DIR__ . '/../app/pages/client/orders.php',
     '/client/quotations' => __DIR__ . '/../app/pages/client/quotations.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
+    '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
+    '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
+    '/owner/verification/status' => __DIR__ . '/../app/pages/owner/verification_status.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
