@@ -344,3 +344,36 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_orders_shop (shop_id),
     INDEX idx_orders_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    method ENUM('cod', 'pickup_cash', 'bank_transfer') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    status ENUM('unpaid', 'pending_proof', 'verified', 'rejected') NOT NULL DEFAULT 'unpaid',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    INDEX idx_payments_order (order_id),
+    INDEX idx_payments_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS payment_proofs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    payment_id INT NOT NULL,
+    proof_path VARCHAR(255) NOT NULL,
+    uploaded_at DATETIME NOT NULL,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
+    INDEX idx_payment_proofs_payment (payment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS payment_reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    payment_id INT NOT NULL,
+    reviewed_by_user_id INT NOT NULL,
+    decision ENUM('verified', 'rejected') NOT NULL,
+    reason TEXT NOT NULL,
+    reviewed_at DATETIME NOT NULL,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_payment_reviews_payment (payment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

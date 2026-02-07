@@ -337,7 +337,10 @@ require __DIR__ . '/../../includes/header.php';
         <h1 class="h4 mb-1">Order #<?= htmlspecialchars((string) $orderId, ENT_QUOTES, 'UTF-8') ?></h1>
         <p class="text-muted mb-0">Review order details and track progress.</p>
     </div>
-    <a class="btn btn-outline-secondary" href="/client/orders">Back to orders</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="/client/orders/<?= htmlspecialchars((string) $orderId, ENT_QUOTES, 'UTF-8') ?>/payment">Payment</a>
+        <a class="btn btn-outline-secondary" href="/client/orders">Back to orders</a>
+    </div>
 </div>
 
 <?php if ($successMessage): ?>

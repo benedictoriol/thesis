@@ -48,6 +48,7 @@ $routes = [
     '/client/profile' => __DIR__ . '/../app/pages/client/profile.php',
     '/client/orders' => __DIR__ . '/../app/pages/client/orders.php',
     '/client/quotations' => __DIR__ . '/../app/pages/client/quotations.php',
+    '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -89,6 +90,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/client/orders/(\d+)$#', $path, $matches)) {
         $_GET['order_id'] = $matches[1];
         require __DIR__ . '/../app/pages/client/order_view.php';
+        exit;
+    }
+    if (preg_match('#^/client/orders/(\d+)/payment$#', $path, $matches)) {
+        $_GET['order_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/payment.php';
         exit;
     }
     if (preg_match('#^/client/designs/(\\d+)$#', $path, $matches)) {
