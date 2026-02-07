@@ -428,18 +428,66 @@ CREATE TABLE IF NOT EXISTS post_offers (
     INDEX idx_post_offers_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS quote_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    source_type ENUM('customization', 'client_post') NOT NULL,
+    source_id INT NOT NULL,
+    design_id INT NULL,
+    notes TEXT NULL,
+    status ENUM('pending', 'quoted', 'accepted', 'rejected', 'expired') NOT NULL DEFAULT 'pending',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (design_id) REFERENCES custom_designs(id) ON DELETE SET NULL,
+    INDEX idx_quote_requests_client (client_user_id),
+    INDEX idx_quote_requests_shop (shop_id),
+    INDEX idx_quote_requests_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS quotes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quote_request_id INT NOT NULL,
+    quoted_by_user_id INT NOT NULL,
+    price DECIMAL(12, 2) NOT NULL,
+    turnaround_days INT NOT NULL,
+    notes TEXT NULL,
+    valid_until DATETIME NULL,
+    status ENUM('sent', 'revised', 'accepted', 'rejected') NOT NULL DEFAULT 'sent',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (quote_request_id) REFERENCES quote_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (quoted_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_quotes_request (quote_request_id),
+    INDEX idx_quotes_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS quote_status_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quote_id INT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    changed_by_user_id INT NULL,
+    note TEXT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_quote_status_logs_quote (quote_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     client_user_id INT NOT NULL,
     shop_id INT NOT NULL,
     post_id INT NULL,
     offer_id INT NULL,
+    quote_id INT NULL,
     status ENUM('pending', 'in_progress', 'ready', 'completed', 'cancelled', 'rejected') NOT NULL DEFAULT 'pending',
     created_at DATETIME NOT NULL,
     FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE SET NULL,
     FOREIGN KEY (offer_id) REFERENCES post_offers(id) ON DELETE SET NULL,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL,
     INDEX idx_orders_client (client_user_id),
     INDEX idx_orders_shop (shop_id),
     INDEX idx_orders_status (status)

@@ -50,6 +50,7 @@ $routes = [
     '/client/quotations' => __DIR__ . '/../app/pages/client/quotations.php',
     '/hr/hiring' => __DIR__ . '/../app/pages/hr/hiring.php',
     '/hr/hiring/create' => __DIR__ . '/../app/pages/hr/hiring_create.php',
+    '/hr/quotes/requests' => __DIR__ . '/../app/pages/hr/quotes/requests.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
     '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
     '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
@@ -104,6 +105,16 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/hr/hiring/(\\d+)/applicants$#', $path, $matches)) {
         $_GET['post_id'] = $matches[1];
         require __DIR__ . '/../app/pages/hr/hiring_applicants.php';
+        exit;
+    }
+    if (preg_match('#^/hr/quotes/requests/(\\d+)$#', $path, $matches)) {
+        $_GET['request_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/quotes/request_view.php';
+        exit;
+    }
+    if (preg_match('#^/hr/quotes/(\\d+)/revise$#', $path, $matches)) {
+        $_GET['quote_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/quotes/revise.php';
         exit;
     }
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
