@@ -229,19 +229,38 @@ CREATE TABLE IF NOT EXISTS shop_staff (
     UNIQUE KEY uniq_shop_staff (shop_id, user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS hiring_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    location_text VARCHAR(255) NULL,
+    employment_type ENUM('full_time', 'part_time', 'contract', 'internship', 'temporary') NOT NULL DEFAULT 'full_time',
+    status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    INDEX idx_hiring_posts_shop (shop_id),
+    INDEX idx_hiring_posts_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS applications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     shop_id INT NOT NULL,
+    post_id INT NULL,
     user_id INT NULL,
     fullname VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(50) NULL,
     position VARCHAR(255) NULL,
-    status ENUM('pending', 'approved', 'rejected', 'converted') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'interviewed', 'approved', 'rejected', 'converted') NOT NULL DEFAULT 'pending',
+    interview_notes TEXT NULL,
     applied_at DATETIME NOT NULL,
+    interviewed_at DATETIME NULL,
     approved_at DATETIME NULL,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES hiring_posts(id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_applications_post (post_id),
     INDEX idx_applications_shop (shop_id),
     INDEX idx_applications_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

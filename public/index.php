@@ -48,6 +48,8 @@ $routes = [
     '/client/profile' => __DIR__ . '/../app/pages/client/profile.php',
     '/client/orders' => __DIR__ . '/../app/pages/client/orders.php',
     '/client/quotations' => __DIR__ . '/../app/pages/client/quotations.php',
+    '/hr/hiring' => __DIR__ . '/../app/pages/hr/hiring.php',
+    '/hr/hiring/create' => __DIR__ . '/../app/pages/hr/hiring_create.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
     '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
     '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
@@ -95,6 +97,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/owner/catalog/(\\d+)/edit$#', $path, $matches)) {
         $_GET['product_id'] = $matches[1];
         require __DIR__ . '/../app/pages/owner/catalog_edit.php';
+        exit;
+    }
+    if (preg_match('#^/hr/hiring/(\\d+)/applicants$#', $path, $matches)) {
+        $_GET['post_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/hr/hiring_applicants.php';
         exit;
     }
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
