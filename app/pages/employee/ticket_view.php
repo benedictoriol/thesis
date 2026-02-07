@@ -84,35 +84,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ticket && !$errors) {
         $errors[] = 'Invalid security token.';
     } else {
         $action = $_POST['action'] ?? '';
-        if ($action === 'add_update') {
+        if ($action === 'add_update' || $action === 'start_work') {
             $status = strtolower(trim((string) ($_POST['status'] ?? '')));
             $note = trim((string) ($_POST['note'] ?? ''));
             $photoPath = null;
+
+            if ($action === 'start_work') {
+                $status = 'working';
+                if ($note === '') {
+                    $note = 'Work started.';
+                }
+            }
 
             if (!in_array($status, $statusOptions, true)) {
                 $errors[] = 'Select a valid status update.';
             }
 
-            $file = $_FILES['photo'] ?? null;
-            if ($file && $file['error'] !== UPLOAD_ERR_NO_FILE) {
-                if ($file['error'] !== UPLOAD_ERR_OK) {
-                    $errors[] = 'Photo upload failed.';
-                } else {
-                    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                    if (!in_array($extension, $allowedExtensions, true)) {
-                        $errors[] = 'Upload a valid image file (JPG, PNG, GIF, WEBP).';
+            if ($action === 'add_update') {
+                $file = $_FILES['photo'] ?? null;
+                if ($file && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+                    if ($file['error'] !== UPLOAD_ERR_OK) {
+                        $errors[] = 'Photo upload failed.';
                     } else {
-                        $uploadDir = __DIR__ . '/../../../public/uploads/tickets/' . $ticketId;
-                        if (!is_dir($uploadDir)) {
-                            mkdir($uploadDir, 0775, true);
-                        }
-                        $filename = sprintf('update-%s.%s', bin2hex(random_bytes(8)), $extension);
-                        $destination = $uploadDir . '/' . $filename;
-                        if (!move_uploaded_file($file['tmp_name'], $destination)) {
-                            $errors[] = 'Unable to save the photo.';
+                        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                        if (!in_array($extension, $allowedExtensions, true)) {
+                            $errors[] = 'Upload a valid image file (JPG, PNG, GIF, WEBP).';
                         } else {
-                            $photoPath = '/uploads/tickets/' . $ticketId . '/' . $filename;
+                            $uploadDir = __DIR__ . '/../../../public/uploads/tickets/' . $ticketId;
+                            if (!is_dir($uploadDir)) {
+                                mkdir($uploadDir, 0775, true);
+                            }
+                            $filename = sprintf('update-%s.%s', bin2hex(random_bytes(8)), $extension);
+                            $destination = $uploadDir . '/' . $filename;
+                            if (!move_uploaded_file($file['tmp_name'], $destination)) {
+                                $errors[] = 'Unable to save the photo.';
+                            } else {
+                                $photoPath = '/uploads/tickets/' . $ticketId . '/' . $filename;
+                            }
                         }
                     }
                 }
@@ -162,36 +171,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ticket && !$errors) {
 
                     $pdo->commit();
                     $ticket['status'] = $status;
-
-                    if ($status === 'done' && $orderStatusColumn) {
-                        $stmt = $pdo->prepare(
-                            'SELECT COUNT(*) FROM job_tickets WHERE order_id = :order_id'
-                        );
-                        $stmt->execute(['order_id' => $ticket['order_id']]);
-                        $totalTickets = (int) $stmt->fetchColumn();
-
-                        $stmt = $pdo->prepare(
-                            'SELECT COUNT(*) FROM job_tickets WHERE order_id = :order_id AND status = :status'
-                        );
-                        $stmt->execute([
-                            'order_id' => $ticket['order_id'],
-                            'status' => 'done',
-                        ]);
-                        $doneTickets = (int) $stmt->fetchColumn();
-
-                        if ($totalTickets > 0 && $doneTickets === $totalTickets) {
-                            $currentOrderStatus = strtolower((string) ($ticket['order_status'] ?? ''));
-                            if ($currentOrderStatus !== 'ready' && $currentOrderStatus !== 'completed') {
-                                $stmt = $pdo->prepare(
-                                    'UPDATE orders SET ' . $orderStatusColumn . ' = :status WHERE id = :order_id'
-                                );
-                                $stmt->execute([
-                                    'status' => 'ready',
-                                    'order_id' => $ticket['order_id'],
-                                ]);
-                            }
-                        }
-                    }
 
                     flash_set('success', 'Ticket updated successfully.');
                     header('Location: /employee/tickets/' . $ticketId);
@@ -285,7 +264,6 @@ require __DIR__ . '/../../includes/header.php';
             <h2 class="h6">Add update</h2>
             <form method="post" enctype="multipart/form-data" class="row g-3">
                 <?= csrf_field() ?>
-                <input type="hidden" name="action" value="add_update">
                 <div class="col-md-4">
                     <label class="form-label" for="status">Status</label>
                     <select class="form-select" id="status" name="status" required>
@@ -306,7 +284,12 @@ require __DIR__ . '/../../includes/header.php';
                     <input class="form-control" id="photo" type="file" name="photo" accept="image/*">
                 </div>
                 <div class="col-12">
-                    <button class="btn btn-outline-primary" type="submit">Save update</button>
+                    <div class="d-flex flex-wrap gap-2">
+                        <?php if (($ticket['status'] ?? '') !== 'working'): ?>
+                            <button class="btn btn-primary" type="submit" name="action" value="start_work">Start work</button>
+                        <?php endif; ?>
+                        <button class="btn btn-outline-primary" type="submit" name="action" value="add_update">Save update</button>
+                    </div>
                 </div>
             </form>
         </div>
