@@ -49,6 +49,21 @@ if (!array_key_exists($path, $routes)) {
         require __DIR__ . '/../app/pages/admin/shop_review.php';
         exit;
     }
+    if (preg_match('#^/product/(\\d+)/reviews$#', $path, $matches)) {
+        $_GET['id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/product_reviews.php';
+        exit;
+    }
+    if (preg_match('#^/shop/(\\d+)/reviews$#', $path, $matches)) {
+        $_GET['id'] = $matches[1];
+        require __DIR__ . '/../app/pages/owner/shop_reviews.php';
+        exit;
+    }
+    if (preg_match('#^/order/(\\d+)/review$#', $path, $matches)) {
+        $_GET['id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/order_review.php';
+        exit;
+    }
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
         $_GET['notification_id'] = $matches[1];
         require __DIR__ . '/../app/pages/notifications/view.php';

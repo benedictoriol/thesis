@@ -23,6 +23,13 @@ $product = null;
 $images = [];
 $variants = [];
 $addons = [];
+$reviews = [];
+$reviewSummary = [
+    'avg_rating' => 0,
+    'review_count' => 0,
+];
+$reviewImages = [];
+$hasReviewsTable = false;
 
 if ($productId <= 0) {
     $errors[] = 'Invalid product selection.';
@@ -102,6 +109,62 @@ if ($productId <= 0) {
                     $addons = [];
                 }
             }
+            
+            if (get_table_columns(db(), 'reviews')) {
+                $hasReviewsTable = true;
+                try {
+                    $summaryStmt = db()->prepare(
+                        'SELECT AVG(rating) AS avg_rating, COUNT(*) AS review_count
+                         FROM reviews
+                         WHERE product_id = :product_id'
+                    );
+                    $summaryStmt->execute(['product_id' => $productId]);
+                    $summaryRow = $summaryStmt->fetch();
+                    if ($summaryRow) {
+                        $reviewSummary = [
+                            'avg_rating' => (float) ($summaryRow['avg_rating'] ?? 0),
+                            'review_count' => (int) ($summaryRow['review_count'] ?? 0),
+                        ];
+                    }
+                } catch (PDOException $exception) {
+                    $reviewSummary = [
+                        'avg_rating' => 0,
+                        'review_count' => 0,
+                    ];
+                }
+
+                try {
+                    $reviewStmt = db()->prepare(
+                        'SELECT r.id, r.rating, r.comment, r.created_at, u.fullname AS client_name
+                         FROM reviews r
+                         JOIN users u ON u.id = r.client_user_id
+                         WHERE r.product_id = :product_id
+                         ORDER BY r.created_at DESC
+                         LIMIT 3'
+                    );
+                    $reviewStmt->execute(['product_id' => $productId]);
+                    $reviews = $reviewStmt->fetchAll();
+                } catch (PDOException $exception) {
+                    $reviews = [];
+                }
+
+                if ($reviews && get_table_columns(db(), 'review_images')) {
+                    try {
+                        $reviewIds = array_map(static fn(array $review) => (int) $review['id'], $reviews);
+                        $placeholders = implode(',', array_fill(0, count($reviewIds), '?'));
+                        $imageStmt = db()->prepare(
+                            "SELECT review_id, image_path FROM review_images WHERE review_id IN ($placeholders)"
+                        );
+                        $imageStmt->execute($reviewIds);
+                        foreach ($imageStmt->fetchAll() as $row) {
+                            $reviewId = (int) $row['review_id'];
+                            $reviewImages[$reviewId][] = $row['image_path'];
+                        }
+                    } catch (PDOException $exception) {
+                        $reviewImages = [];
+                    }
+                }
+            }
         }
     } catch (PDOException $exception) {
         $errors[] = 'Unable to load product details right now.';
@@ -125,6 +188,8 @@ require __DIR__ . '/../../includes/header.php';
     $needsQuote = (float) ($product['base_price'] ?? 0) <= 0;
     $isCustomizable = !empty($variants) || !empty($addons);
     $mainImage = $images[0] ?? '';
+    $reviewCount = $hasReviewsTable ? ($reviewSummary['review_count'] ?? 0) : (int) ($product['review_count'] ?? 0);
+    $avgRating = $hasReviewsTable ? ($reviewSummary['avg_rating'] ?? 0) : (float) ($product['avg_rating'] ?? 0);
     ?>
     <div class="row g-4">
         <div class="col-12 col-lg-8">
@@ -158,8 +223,8 @@ require __DIR__ . '/../../includes/header.php';
                             </div>
                             <div class="fw-semibold mb-3">₱<?= number_format((float) ($product['base_price'] ?? 0), 2) ?></div>
                             <div class="small text-muted mb-3">
-                                ⭐ <?= number_format((float) ($product['avg_rating'] ?? 0), 1) ?>
-                                (<?= (int) ($product['review_count'] ?? 0) ?> reviews)
+                                ⭐ <?= number_format((float) $avgRating, 1) ?>
+                                (<?= (int) $reviewCount ?> reviews)
                             </div>
                             <?php if (!empty($product['description'])): ?>
                                 <p class="mb-0"><?= nl2br(htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8')) ?></p>
@@ -268,13 +333,41 @@ require __DIR__ . '/../../includes/header.php';
                 <div>
                     <h3 class="h6 mb-1">Reviews</h3>
                     <div class="small text-muted">
-                        ⭐ <?= number_format((float) ($product['avg_rating'] ?? 0), 1) ?>
-                        (<?= (int) ($product['review_count'] ?? 0) ?> reviews)
+                        ⭐ <?= number_format((float) $avgRating, 1) ?>
+                        (<?= (int) $reviewCount ?> reviews)
                     </div>
                 </div>
-                <a class="btn btn-outline-secondary btn-sm" href="#reviews">See all reviews</a>
+                <a class="btn btn-outline-secondary btn-sm" href="/product/<?= (int) $product['id'] ?>/reviews">See all reviews</a>
             </div>
-            <p class="text-muted mb-0">Reviews will appear here once customers submit feedback.</p>
+            <?php if ($reviews): ?>
+                <div class="vstack gap-3">
+                    <?php foreach ($reviews as $review): ?>
+                        <div class="border rounded p-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong><?= htmlspecialchars($review['client_name'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                <span class="text-muted small"><?= htmlspecialchars($review['created_at'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </div>
+                            <div class="small text-muted mb-2">⭐ <?= (int) $review['rating'] ?>/5</div>
+                            <?php if (!empty($review['comment'])): ?>
+                                <p class="mb-2"><?= nl2br(htmlspecialchars($review['comment'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <?php else: ?>
+                                <p class="text-muted mb-2">No written feedback provided.</p>
+                            <?php endif; ?>
+                            <?php if (!empty($reviewImages[$review['id']])): ?>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <?php foreach ($reviewImages[$review['id']] as $imagePath): ?>
+                                        <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>"
+                                             alt="Review photo"
+                                             class="rounded border" style="width: 72px; height: 72px; object-fit: cover;">
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p class="text-muted mb-0">Reviews will appear here once customers submit feedback.</p>
+            <?php endif; ?>
         </div>
     </div>
 

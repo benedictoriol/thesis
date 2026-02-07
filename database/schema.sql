@@ -190,3 +190,29 @@ CREATE TABLE IF NOT EXISTS product_addons (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_product_addons_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NULL,
+    shop_id INT NOT NULL,
+    client_user_id INT NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_reviews_order (order_id),
+    INDEX idx_reviews_shop (shop_id),
+    INDEX idx_reviews_product (product_id),
+    INDEX idx_reviews_client (client_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS review_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+    INDEX idx_review_images_review (review_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
