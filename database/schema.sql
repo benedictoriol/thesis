@@ -131,3 +131,42 @@ CREATE TABLE IF NOT EXISTS moderation_actions (
     created_at DATETIME NOT NULL,
     FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS shop_staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('hr', 'employee') NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_shop_staff (shop_id, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS conversations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    client_user_id INT NOT NULL,
+    context_type ENUM('inquiry', 'post', 'quote_request', 'order') NOT NULL,
+    context_id INT NULL,
+    created_at DATETIME NOT NULL,
+    last_message_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_conversations_shop (shop_id),
+    INDEX idx_conversations_client (client_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    sender_user_id INT NOT NULL,
+    message_text TEXT NOT NULL,
+    attachment_path VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_messages_conversation (conversation_id),
+    INDEX idx_messages_conversation_created (conversation_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

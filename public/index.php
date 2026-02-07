@@ -37,6 +37,7 @@ $routes = [
     '/admin/reports' => __DIR__ . '/../app/pages/admin/reports.php',
     '/admin/audit-logs' => __DIR__ . '/../app/pages/admin/audit_logs.php',
     '/notifications' => __DIR__ . '/../app/pages/notifications/index.php',
+    '/messages' => __DIR__ . '/../app/pages/messages/index.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -48,6 +49,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
         $_GET['notification_id'] = $matches[1];
         require __DIR__ . '/../app/pages/notifications/view.php';
+        exit;
+    }
+    if (preg_match('#^/messages/(\d+)$#', $path, $matches)) {
+        $_GET['conversation_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/messages/view.php';
         exit;
     }
     http_response_code(404);
