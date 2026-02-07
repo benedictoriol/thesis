@@ -184,12 +184,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $offerPrice = (float) ($_POST['offer_price'] ?? 0);
-            $message = trim($_POST['message'] ?? '');
+            $turnaroundDays = (int) ($_POST['turnaround_days'] ?? 0);
+            $notes = trim($_POST['notes'] ?? '');
             $shopId = (int) ($_POST['shop_id'] ?? 0);
             $allowedShopIds = array_map('intval', array_column($staffShops, 'id'));
 
             if ($offerPrice <= 0) {
                 $errors[] = 'Offer price must be greater than zero.';
+            }
+            if ($turnaroundDays <= 0) {
+                $errors[] = 'Turnaround days must be at least 1.';
             }
             if (!$shopId || !in_array($shopId, $allowedShopIds, true)) {
                 $errors[] = 'Please choose a valid shop.';
@@ -198,15 +202,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$errors) {
                 try {
                     $stmt = db()->prepare(
-                        'INSERT INTO post_offers (post_id, shop_id, staff_user_id, offer_price, message, status, created_at)
-                         VALUES (:post_id, :shop_id, :staff_user_id, :offer_price, :message, :status, :created_at)'
+                        'INSERT INTO post_offers (post_id, shop_id, offered_by_user_id, price, turnaround_days, notes, status, created_at)
+                         VALUES (:post_id, :shop_id, :offered_by_user_id, :price, :turnaround_days, :notes, :status, :created_at)'
                     );
                     $stmt->execute([
                         'post_id' => $post['id'],
                         'shop_id' => $shopId,
-                        'staff_user_id' => $user['id'],
-                        'offer_price' => $offerPrice,
-                        'message' => $message !== '' ? $message : null,
+                        'offered_by_user_id' => $user['id'],
+                        'price' => $offerPrice,
+                        'turnaround_days' => $turnaroundDays,
+                        'notes' => $notes !== '' ? $notes : null,
                         'status' => 'sent',
                         'created_at' => gmdate('Y-m-d H:i:s'),
                     ]);
@@ -282,6 +287,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors[] = 'Unable to accept the offer right now.';
                 }
             }
+            } elseif ($action === 'reject_offer' && $user['role'] === 'client') {
+            if ($post['status'] !== 'open') {
+                $errors[] = 'Only open posts can reject offers.';
+            }
+
+            $offerId = (int) ($_POST['offer_id'] ?? 0);
+            if ($offerId <= 0) {
+                $errors[] = 'Invalid offer selection.';
+            }
+
+            if (!$errors) {
+                try {
+                    $stmt = db()->prepare(
+                        'UPDATE post_offers
+                         SET status = :status
+                         WHERE id = :id
+                         AND post_id = :post_id
+                         AND status = :current_status'
+                    );
+                    $stmt->execute([
+                        'status' => 'rejected',
+                        'id' => $offerId,
+                        'post_id' => $post['id'],
+                        'current_status' => 'sent',
+                    ]);
+
+                    if ($stmt->rowCount() === 0) {
+                        throw new RuntimeException('Offer is no longer available.');
+                    }
+
+                    flash_set('success', 'Offer rejected.');
+                    header('Location: /client/posts/' . $post['id']);
+                    exit;
+                } catch (Throwable $exception) {
+                    $errors[] = 'Unable to reject the offer right now.';
+                }
+            }
         }
     }
 }
@@ -317,7 +359,7 @@ try {
             'SELECT po.*, s.name AS shop_name, u.fullname AS staff_name
              FROM post_offers po
              JOIN shops s ON s.id = po.shop_id
-             JOIN users u ON u.id = po.staff_user_id
+             JOIN users u ON u.id = po.offered_by_user_id
              WHERE po.post_id = :post_id
              ORDER BY po.created_at DESC, po.id DESC'
         );
@@ -331,7 +373,7 @@ try {
             "SELECT po.*, s.name AS shop_name, u.fullname AS staff_name
              FROM post_offers po
              JOIN shops s ON s.id = po.shop_id
-             JOIN users u ON u.id = po.staff_user_id
+             JOIN users u ON u.id = po.offered_by_user_id
              WHERE po.post_id = ?
              AND po.shop_id IN ($placeholders)
              ORDER BY po.created_at DESC, po.id DESC"
@@ -524,8 +566,12 @@ require __DIR__ . '/../../includes/header.php';
                         <input class="form-control" id="offer_price" type="number" step="0.01" min="0" name="offer_price" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" for="message">Message (optional)</label>
-                        <textarea class="form-control" id="message" name="message" rows="3"></textarea>
+                        <label class="form-label" for="turnaround_days">Turnaround days</label>
+                        <input class="form-control" id="turnaround_days" type="number" min="1" name="turnaround_days" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="notes">Notes (optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                     </div>
                     <button class="btn btn-primary" type="submit">Send offer</button>
                 </form>
@@ -547,6 +593,7 @@ require __DIR__ . '/../../includes/header.php';
                     $offerBadge = match ($offerStatus) {
                         'accepted' => 'bg-success',
                         'rejected' => 'bg-secondary',
+                        'withdrawn' => 'bg-warning text-dark',
                         default => 'bg-info text-dark',
                     };
                     ?>
@@ -558,19 +605,43 @@ require __DIR__ . '/../../includes/header.php';
                             </div>
                             <div class="text-end">
                                 <span class="badge <?= $offerBadge ?> text-uppercase"><?= htmlspecialchars($offerStatus, ENT_QUOTES, 'UTF-8') ?></span>
-                                <div class="fw-semibold mt-1">₱<?= htmlspecialchars(number_format((float) $offer['offer_price'], 2), ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="fw-semibold mt-1">₱<?= htmlspecialchars(number_format((float) $offer['price'], 2), ENT_QUOTES, 'UTF-8') ?></div>
                             </div>
                         </div>
-                        <?php if (!empty($offer['message'])): ?>
-                            <div class="mt-2 small text-muted"><?= nl2br(htmlspecialchars($offer['message'], ENT_QUOTES, 'UTF-8')) ?></div>
+                        <?php if (!empty($offer['turnaround_days'])): ?>
+                            <div class="mt-2 small text-muted">Turnaround: <?= (int) $offer['turnaround_days'] ?> day(s)</div>
                         <?php endif; ?>
-                        <?php if ($user['role'] === 'client' && $post['status'] === 'open' && $offerStatus === 'sent'): ?>
-                            <form method="post" class="mt-3">
-                                <?= csrf_field(); ?>
-                                <input type="hidden" name="action" value="accept_offer">
-                                <input type="hidden" name="offer_id" value="<?= (int) $offer['id'] ?>">
-                                <button class="btn btn-sm btn-success" type="submit">Accept offer</button>
-                            </form>
+                        <?php if (!empty($offer['notes'])): ?>
+                            <div class="mt-2 small text-muted"><?= nl2br(htmlspecialchars($offer['notes'], ENT_QUOTES, 'UTF-8')) ?></div>
+                        <?php endif; ?>
+                        <?php if ($user['role'] === 'client'): ?>
+                            <?php if ($post['status'] === 'open' && $offerStatus === 'sent'): ?>
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    <form method="post">
+                                        <?= csrf_field(); ?>
+                                        <input type="hidden" name="action" value="accept_offer">
+                                        <input type="hidden" name="offer_id" value="<?= (int) $offer['id'] ?>">
+                                        <button class="btn btn-sm btn-success" type="submit">Accept offer</button>
+                                    </form>
+                                    <form method="post">
+                                        <?= csrf_field(); ?>
+                                        <input type="hidden" name="action" value="reject_offer">
+                                        <input type="hidden" name="offer_id" value="<?= (int) $offer['id'] ?>">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Reject offer</button>
+                                    </form>
+                                    <a class="btn btn-sm btn-outline-dark"
+                                       href="/messages?action=start&shop_id=<?= (int) $offer['shop_id'] ?>&context_type=post&context_id=<?= (int) $post['id'] ?>">
+                                        Message shop
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <div class="mt-3">
+                                    <a class="btn btn-sm btn-outline-dark"
+                                       href="/messages?action=start&shop_id=<?= (int) $offer['shop_id'] ?>&context_type=post&context_id=<?= (int) $post['id'] ?>">
+                                        Message shop
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
