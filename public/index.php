@@ -55,6 +55,8 @@ $routes = [
     '/owner/shop/profile' => __DIR__ . '/../app/pages/owner/shop_profile.php',
     '/owner/shop/hours' => __DIR__ . '/../app/pages/owner/shop_hours.php',
     '/owner/shop/availability' => __DIR__ . '/../app/pages/owner/shop_availability.php',
+    '/owner/catalog' => __DIR__ . '/../app/pages/owner/catalog.php',
+    '/owner/catalog/create' => __DIR__ . '/../app/pages/owner/catalog_create.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -81,6 +83,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/order/(\\d+)/review$#', $path, $matches)) {
         $_GET['id'] = $matches[1];
         require __DIR__ . '/../app/pages/client/order_review.php';
+        exit;
+    }
+    if (preg_match('#^/owner/catalog/(\\d+)/edit$#', $path, $matches)) {
+        $_GET['product_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/owner/catalog_edit.php';
         exit;
     }
     if (preg_match('#^/notifications/(\d+)$#', $path, $matches)) {
