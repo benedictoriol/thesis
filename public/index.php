@@ -38,6 +38,8 @@ $routes = [
     '/admin/audit-logs' => __DIR__ . '/../app/pages/admin/audit_logs.php',
     '/notifications' => __DIR__ . '/../app/pages/notifications/index.php',
     '/messages' => __DIR__ . '/../app/pages/messages/index.php',
+    '/client/home' => __DIR__ . '/../app/pages/client/home.php',
+    '/client/product_view' => __DIR__ . '/../app/pages/client/product_view.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
