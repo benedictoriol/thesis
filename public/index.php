@@ -57,6 +57,8 @@ $routes = [
     '/owner/shop/availability' => __DIR__ . '/../app/pages/owner/shop_availability.php',
     '/owner/catalog' => __DIR__ . '/../app/pages/owner/catalog.php',
     '/owner/catalog/create' => __DIR__ . '/../app/pages/owner/catalog_create.php',
+    '/owner/portfolio' => __DIR__ . '/../app/pages/owner/portfolio.php',
+    '/owner/portfolio/create' => __DIR__ . '/../app/pages/owner/portfolio_create.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
