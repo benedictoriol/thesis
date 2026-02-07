@@ -59,6 +59,7 @@ $routes = [
     '/hr/hiring/create' => __DIR__ . '/../app/pages/hr/hiring_create.php',
     '/hr/timesheets' => __DIR__ . '/../app/pages/hr/timesheets.php',
     '/hr/productivity' => __DIR__ . '/../app/pages/hr/productivity.php',
+    '/hr/reports' => __DIR__ . '/../app/pages/owner/reports.php',
     '/hr/quotes/requests' => __DIR__ . '/../app/pages/hr/quotes/requests.php',
     '/hr/payroll/periods' => __DIR__ . '/../app/pages/hr/payroll/periods.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
@@ -79,6 +80,7 @@ $routes = [
     '/owner/hiring/applicants' => __DIR__ . '/../app/pages/owner/hiring/applicants.php',
     '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
     '/owner/orders' => __DIR__ . '/../app/pages/owner/orders.php',
+    '/owner/reports' => __DIR__ . '/../app/pages/owner/reports.php',
     '/employee/tickets' => __DIR__ . '/../app/pages/employee/tickets.php',
     '/employee/payslips' => __DIR__ . '/../app/pages/employee/payslips.php',
 ];
