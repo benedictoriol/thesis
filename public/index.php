@@ -65,6 +65,7 @@ $routes = [
     '/owner/staff' => __DIR__ . '/../app/pages/owner/staff.php',
     '/owner/staff/create-hr' => __DIR__ . '/../app/pages/owner/create_hr.php',
     '/owner/staff/permissions' => __DIR__ . '/../app/pages/owner/staff_permissions.php',
+    '/owner/earnings' => __DIR__ . '/../app/pages/owner/earnings.php',
     '/owner/hiring/applicants' => __DIR__ . '/../app/pages/owner/hiring/applicants.php',
     '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
     '/owner/orders' => __DIR__ . '/../app/pages/owner/orders.php',
