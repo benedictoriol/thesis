@@ -54,6 +54,11 @@ if (!array_key_exists($path, $routes)) {
         require __DIR__ . '/../app/pages/client/product_reviews.php';
         exit;
     }
+    if (preg_match('#^/shop/(\\d+)$#', $path, $matches)) {
+        $_GET['id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/shop_view.php';
+        exit;
+    }
     if (preg_match('#^/shop/(\\d+)/reviews$#', $path, $matches)) {
         $_GET['id'] = $matches[1];
         require __DIR__ . '/../app/pages/owner/shop_reviews.php';
