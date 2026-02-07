@@ -216,3 +216,36 @@ CREATE TABLE IF NOT EXISTS review_images (
     FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
     INDEX idx_review_images_review (review_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS custom_designs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id INT NOT NULL,
+    shop_id INT NULL,
+    name VARCHAR(120) NOT NULL,
+    item_type ENUM('tshirt', 'cap', 'bag', 'logo') NOT NULL,
+    preview_path VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE SET NULL,
+    INDEX idx_custom_designs_owner (owner_user_id),
+    INDEX idx_custom_designs_shop (shop_id),
+    INDEX idx_custom_designs_type (item_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS custom_design_layers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    design_id INT NOT NULL,
+    layer_type ENUM('image', 'text') NOT NULL,
+    content TEXT NOT NULL,
+    x DECIMAL(10,2) NOT NULL DEFAULT 0,
+    y DECIMAL(10,2) NOT NULL DEFAULT 0,
+    scale DECIMAL(8,3) NOT NULL DEFAULT 1,
+    rotation DECIMAL(8,3) NOT NULL DEFAULT 0,
+    color VARCHAR(40) NULL,
+    font VARCHAR(120) NULL,
+    font_size INT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (design_id) REFERENCES custom_designs(id) ON DELETE CASCADE,
+    INDEX idx_custom_design_layers_design (design_id),
+    INDEX idx_custom_design_layers_type (layer_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -41,6 +41,8 @@ $routes = [
     '/client/home' => __DIR__ . '/../app/pages/client/home.php',
     '/client/product_view' => __DIR__ . '/../app/pages/client/product_view.php',
     '/client/search' => __DIR__ . '/../app/pages/client/search.php',
+    '/client/customize' => __DIR__ . '/../app/pages/client/customize.php',
+    '/client/designs' => __DIR__ . '/../app/pages/client/designs.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -77,6 +79,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/messages/(\d+)$#', $path, $matches)) {
         $_GET['conversation_id'] = $matches[1];
         require __DIR__ . '/../app/pages/messages/view.php';
+        exit;
+    }
+    if (preg_match('#^/client/designs/(\\d+)$#', $path, $matches)) {
+        $_GET['design_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/client/design_view.php';
         exit;
     }
     http_response_code(404);
