@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS orders (
     shop_id INT NOT NULL,
     post_id INT NULL,
     offer_id INT NULL,
-    status ENUM('pending', 'in_progress', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'in_progress', 'ready', 'completed', 'cancelled', 'rejected') NOT NULL DEFAULT 'pending',
     created_at DATETIME NOT NULL,
     FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
@@ -443,6 +443,57 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_orders_client (client_user_id),
     INDEX idx_orders_shop (shop_id),
     INDEX idx_orders_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS order_status_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    note TEXT NULL,
+    changed_by_user_id INT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_order_status_logs_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS order_assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    staff_user_id INT NOT NULL,
+    assigned_by_user_id INT NOT NULL,
+    assigned_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_order_staff (order_id, staff_user_id),
+    INDEX idx_order_assignments_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS order_job_tickets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    ticket_code VARCHAR(40) NOT NULL,
+    title VARCHAR(150) NULL,
+    notes TEXT NULL,
+    status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
+    created_by_user_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_job_ticket_code (ticket_code),
+    INDEX idx_order_job_tickets_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS order_proofs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    proof_path VARCHAR(255) NOT NULL,
+    uploaded_by_user_id INT NOT NULL,
+    uploaded_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_order_proofs_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS payments (

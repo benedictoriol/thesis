@@ -66,6 +66,7 @@ $routes = [
     '/owner/staff/permissions' => __DIR__ . '/../app/pages/owner/staff_permissions.php',
     '/owner/hiring/applicants' => __DIR__ . '/../app/pages/owner/hiring/applicants.php',
     '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
+    '/owner/orders' => __DIR__ . '/../app/pages/owner/orders.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
@@ -117,6 +118,11 @@ if (!array_key_exists($path, $routes)) {
     if (preg_match('#^/client/orders/(\d+)$#', $path, $matches)) {
         $_GET['order_id'] = $matches[1];
         require __DIR__ . '/../app/pages/client/order_view.php';
+        exit;
+    }
+    if (preg_match('#^/owner/orders/(\d+)$#', $path, $matches)) {
+        $_GET['order_id'] = $matches[1];
+        require __DIR__ . '/../app/pages/owner/order_view.php';
         exit;
     }
     if (preg_match('#^/client/orders/(\d+)/payment$#', $path, $matches)) {
