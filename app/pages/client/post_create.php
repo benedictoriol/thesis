@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/dss_helpers.php';
+require_once __DIR__ . '/../../handlers/notification_handler.php';
 require_once __DIR__ . '/../../handlers/post_handler.php';
 
 require_role(['client']);
@@ -251,6 +252,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             db()->commit();
+            try {
+                notify_shops_about_post($postId);
+            } catch (Throwable $exception) {
+                // Notifications are best-effort.
+            }
             flash_set('success', 'Post created successfully.');
             header('Location: /client/posts');
             exit;

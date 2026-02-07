@@ -4,6 +4,7 @@ require_once __DIR__ . '/db.php';
 
 const NOTIFICATION_TYPES = [
     'message_received',
+    'post_match',
     'quote_request_received',
     'quote_sent',
     'quote_accepted',
