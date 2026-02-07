@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../core/guard.php';
+require_once __DIR__ . '/../../core/audit.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     } else {
         $staffId = (int) ($_POST['staff_id'] ?? 0);
         $updates = [];
+        $changeSet = [];
         $params = [
             'staff_id' => $staffId,
             'shop_id' => $shop['id'],
@@ -38,18 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             $status = $_POST['status'] === 'disabled' ? 'disabled' : 'active';
             $updates[] = 'status = :status';
             $params['status'] = $status;
+            $changeSet['status'] = $status;
         }
         if ($hasCanQuote) {
             $updates[] = 'can_quote = :can_quote';
             $params['can_quote'] = isset($_POST['can_quote']) ? 1 : 0;
+            $changeSet['can_quote'] = $params['can_quote'];
         }
         if ($hasManageOrders) {
             $updates[] = 'can_manage_orders = :can_manage_orders';
             $params['can_manage_orders'] = isset($_POST['can_manage_orders']) ? 1 : 0;
+            $changeSet['can_manage_orders'] = $params['can_manage_orders'];
         }
         if ($hasManageInventory) {
             $updates[] = 'can_manage_inventory = :can_manage_inventory';
             $params['can_manage_inventory'] = isset($_POST['can_manage_inventory']) ? 1 : 0;
+            $changeSet['can_manage_inventory'] = $params['can_manage_inventory'];
         }
 
         if (!$updates) {
@@ -62,6 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 );
                 $stmt = db()->prepare($sql);
                 $stmt->execute($params);
+                if ($changeSet) {
+                    audit_log(
+                        (int) $currentUser['id'],
+                        'update_staff_permissions',
+                        'shop_staff',
+                        $staffId,
+                        [
+                            'shop_id' => $shop['id'],
+                            'changes' => $changeSet,
+                        ]
+                    );
+                }
                 flash_set('success', 'Staff permissions updated.');
                 header('Location: /owner/staff/permissions');
                 exit;

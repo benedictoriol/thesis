@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
+require_once __DIR__ . '/../../core/audit.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
@@ -376,6 +377,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                     ]);
 
                     log_order_status($orderId, $nextStatus, $note, $currentUser['id']);
+
+                    if ($shop) {
+                        $auditMeta = [
+                            'shop_id' => $shop['id'],
+                            'from_status' => $statusValue,
+                            'to_status' => $nextStatus,
+                        ];
+                        if ($note) {
+                            $auditMeta['note'] = $note;
+                        }
+
+                        if ($action === 'accept') {
+                            audit_log((int) $currentUser['id'], 'approve_order', 'orders', $orderId, $auditMeta);
+                        } elseif ($action === 'reject') {
+                            audit_log((int) $currentUser['id'], 'reject_order', 'orders', $orderId, $auditMeta);
+                        }
+
+                        audit_log((int) $currentUser['id'], 'order_status_change', 'orders', $orderId, $auditMeta);
+                    }
 
                     flash_set('success', 'Order updated successfully.');
                     header('Location: /owner/orders/' . $orderId);

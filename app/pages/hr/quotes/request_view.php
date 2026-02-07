@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../../core/guard.php';
 require_once __DIR__ . '/../../../core/db.php';
+require_once __DIR__ . '/../../../core/audit.php';
 require_once __DIR__ . '/../../../includes/csrf.php';
 require_once __DIR__ . '/../../../includes/staff_helpers.php';
 
@@ -179,6 +180,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
                     'note' => $notes !== '' ? $notes : null,
                     'created_at' => gmdate('Y-m-d H:i:s'),
                 ]);
+
+                audit_log(
+                    (int) $currentUser['id'],
+                    'create_quote',
+                    'quotes',
+                    $quoteId,
+                    [
+                        'shop_id' => $shop['id'],
+                        'request_id' => $requestId,
+                        'price' => $price,
+                        'turnaround_days' => $turnaroundDays,
+                        'valid_until' => $validUntil,
+                    ]
+                );
 
                 db()->commit();
                 $successMessage = 'Quote sent successfully.';

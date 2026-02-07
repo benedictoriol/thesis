@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
+require_once __DIR__ . '/../../core/audit.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 
@@ -107,6 +108,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'uploa
                         'file_path' => $relativePath,
                         'uploaded_at' => gmdate('Y-m-d H:i:s'),
                     ]);
+                    $docId = (int) db()->lastInsertId();
+                    audit_log(
+                        (int) $currentUser['id'],
+                        'upload_document',
+                        'shop_documents',
+                        $docId,
+                        [
+                            'shop_id' => $shop['id'],
+                            'doc_type' => $docType,
+                            'file_path' => $relativePath,
+                        ]
+                    );
 
                     flash_set('success', 'Document uploaded successfully.');
                     header('Location: /owner/verification/upload');

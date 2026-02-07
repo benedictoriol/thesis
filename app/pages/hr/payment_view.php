@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
+require_once __DIR__ . '/../../core/audit.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 
@@ -28,6 +29,34 @@ function find_column(array $columns, array $candidates): ?string
     }
 
     return null;
+}
+
+function load_payment_audit_context(int $paymentId, ?string $shopIdColumn): ?array
+{
+    if (!$shopIdColumn) {
+        return null;
+    }
+
+    try {
+        $stmt = db()->prepare(
+            'SELECT o.id AS order_id, o.' . $shopIdColumn . ' AS shop_id
+             FROM payments p
+             JOIN orders o ON o.id = p.order_id
+             WHERE p.id = :payment_id
+             LIMIT 1'
+        );
+        $stmt->execute(['payment_id' => $paymentId]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return null;
+        }
+        return [
+            'order_id' => (int) $row['order_id'],
+            'shop_id' => $row['shop_id'] !== null ? (int) $row['shop_id'] : null,
+        ];
+    } catch (PDOException $exception) {
+        return null;
+    }
 }
 
 $currentUser = current_user();
@@ -101,6 +130,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                             'id' => $paymentId,
                         ]);
 
+                        $auditContext = load_payment_audit_context($paymentId, $shopIdColumn);
+                        if ($auditContext && $auditContext['shop_id']) {
+                            audit_log(
+                                (int) $currentUser['id'],
+                                $decision === 'verified' ? 'payment_verified' : 'payment_rejected',
+                                'payments',
+                                $paymentId,
+                                [
+                                    'shop_id' => $auditContext['shop_id'],
+                                    'order_id' => $auditContext['order_id'],
+                                    'decision' => $decision,
+                                    'reason' => $finalReason,
+                                ]
+                            );
+                        }
+
                         flash_set('success', 'Payment review saved.');
                         header('Location: /hr/payments/' . $paymentId);
                         exit;
@@ -141,6 +186,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                         'status' => 'verified',
                         'id' => $paymentId,
                     ]);
+
+                    $auditContext = load_payment_audit_context($paymentId, $shopIdColumn);
+                    if ($auditContext && $auditContext['shop_id']) {
+                        audit_log(
+                            (int) $currentUser['id'],
+                            'payment_verified',
+                            'payments',
+                            $paymentId,
+                            [
+                                'shop_id' => $auditContext['shop_id'],
+                                'order_id' => $auditContext['order_id'],
+                                'decision' => 'verified',
+                                'reason' => 'COD received.',
+                            ]
+                        );
+                    }
 
                     flash_set('success', 'COD marked as received.');
                     header('Location: /hr/payments/' . $paymentId);

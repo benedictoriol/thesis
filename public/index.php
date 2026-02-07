@@ -63,6 +63,7 @@ $routes = [
     '/hr/quotes/requests' => __DIR__ . '/../app/pages/hr/quotes/requests.php',
     '/hr/payroll/periods' => __DIR__ . '/../app/pages/hr/payroll/periods.php',
     '/hr/payments' => __DIR__ . '/../app/pages/hr/payments.php',
+    '/hr/audit-logs' => __DIR__ . '/../app/pages/owner/audit_logs.php',
     '/owner/verification' => __DIR__ . '/../app/pages/owner/verification.php',
     '/owner/verification/upload' => __DIR__ . '/../app/pages/owner/verification_upload.php',
     '/owner/verification/status' => __DIR__ . '/../app/pages/owner/verification_status.php',
@@ -81,6 +82,7 @@ $routes = [
     '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
     '/owner/orders' => __DIR__ . '/../app/pages/owner/orders.php',
     '/owner/reports' => __DIR__ . '/../app/pages/owner/reports.php',
+    '/owner/audit-logs' => __DIR__ . '/../app/pages/owner/audit_logs.php',
     '/employee/tickets' => __DIR__ . '/../app/pages/employee/tickets.php',
     '/employee/payslips' => __DIR__ . '/../app/pages/employee/payslips.php',
 ];
