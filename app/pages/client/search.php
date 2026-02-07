@@ -2,9 +2,11 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
+require_once __DIR__ . '/../../includes/dss_helpers.php';
 
 require_role(['client']);
 
+$currentUser = current_user();
 $pageTitle = 'Search';
 
 $query = trim($_GET['q'] ?? '');
@@ -83,6 +85,19 @@ $productCategoryColumn = find_column($productColumns, ['category_id']);
 $shopNameColumn = find_column($shopColumns, ['name']);
 $shopDescriptionColumn = find_column($shopColumns, ['description']);
 $shopTownColumn = find_column($shopColumns, ['address_text', 'town', 'city', 'location']);
+
+$weights = dss_load_weights();
+$bounds = dss_load_metric_bounds($metricsColumns);
+$recommendation = dss_build_score_sql(
+    $weights,
+    $bounds,
+    $metricsColumns,
+    $availabilityColumns,
+    $shopTownColumn,
+    $town
+);
+$recommendationScoreSql = $recommendation['sql'];
+$recommendationParams = $recommendation['params'];
 
 $postTitleColumn = find_column($postColumns, ['title', 'subject', 'name']);
 $postDescriptionColumn = find_column($postColumns, ['description', 'details', 'content']);
@@ -194,11 +209,18 @@ if ($type === 'products') {
             $availabilityTurnaroundColumn ? "sa.$availabilityTurnaroundColumn AS turnaround" : 'NULL AS turnaround',
         ];
 
-        $sql = "SELECT " . implode(', ', $selectColumns) . "\nFROM products p\n$joinSql\n$whereSql\nORDER BY p.id DESC\nLIMIT :limit OFFSET :offset";
+        $orderSql = $recommendationScoreSql !== '0'
+            ? $recommendationScoreSql . ' DESC, p.id DESC'
+            : 'p.id DESC';
+
+        $sql = "SELECT " . implode(', ', $selectColumns) . "\nFROM products p\n$joinSql\n$whereSql\nORDER BY $orderSql\nLIMIT :limit OFFSET :offset";
         $stmt = db()->prepare($sql);
         foreach ($params as $key => $value) {
             $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
             $stmt->bindValue(':' . $key, $value, $paramType);
+        }
+        foreach ($recommendationParams as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
         }
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -283,11 +305,18 @@ if ($type === 'shops') {
             $availabilityTurnaroundColumn ? "sa.$availabilityTurnaroundColumn AS turnaround" : 'NULL AS turnaround',
         ];
 
-        $sql = "SELECT " . implode(', ', $selectColumns) . "\nFROM shops s$joinSql\n$whereSql\nORDER BY s.id DESC\nLIMIT :limit OFFSET :offset";
+        $orderSql = $recommendationScoreSql !== '0'
+            ? $recommendationScoreSql . ' DESC, s.id DESC'
+            : 's.id DESC';
+
+        $sql = "SELECT " . implode(', ', $selectColumns) . "\nFROM shops s$joinSql\n$whereSql\nORDER BY $orderSql\nLIMIT :limit OFFSET :offset";
         $stmt = db()->prepare($sql);
         foreach ($params as $key => $value) {
             $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
             $stmt->bindValue(':' . $key, $value, $paramType);
+        }
+        foreach ($recommendationParams as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
         }
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -356,6 +385,29 @@ if ($type === 'posts') {
     } catch (PDOException $exception) {
         $errors[] = 'Unable to load post results right now.';
     }
+}
+
+$logResults = $results ? array_column($results, 'id') : [];
+if (in_array($type, ['products', 'shops'], true)) {
+    dss_log(
+        (int) $currentUser['id'],
+        [
+            'type' => $type,
+            'query' => $query,
+            'category' => $categoryId,
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
+            'rating_min' => $ratingMin,
+            'turnaround_max' => $turnaroundMax,
+            'town' => $town,
+            'accepting_orders' => $acceptingOrders,
+            'accepting_quotes' => $acceptingQuotes,
+            'page' => $page,
+        ],
+        [
+            'result_ids' => $logResults,
+        ]
+    );
 }
 
 $totalPages = max(1, (int) ceil($totalResults / $perPage));

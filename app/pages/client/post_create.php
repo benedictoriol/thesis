@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/dss_helpers.php';
 require_once __DIR__ . '/../../handlers/post_handler.php';
 
 require_role(['client']);
@@ -13,6 +14,7 @@ $pageTitle = 'Create Post';
 $errors = [];
 $successMessage = flash_get('success');
 $designIds = [];
+$selectedInviteIds = array_values(array_unique(array_filter(array_map('intval', $_POST['invite_shop_ids'] ?? []))));
 
 $itemTypes = [
     'tshirt' => 'T-Shirt',
@@ -29,6 +31,95 @@ try {
     $designs = $stmt->fetchAll();
 } catch (PDOException $exception) {
     $errors[] = 'Unable to load saved designs right now.';
+}
+
+function get_table_columns(PDO $pdo, string $table): array
+{
+    try {
+        $stmt = $pdo->query(sprintf('SHOW COLUMNS FROM %s', $table));
+        return array_map(static fn(array $row) => $row['Field'], $stmt->fetchAll());
+    } catch (PDOException $exception) {
+        return [];
+    }
+}
+
+function find_column(array $columns, array $candidates): ?string
+{
+    foreach ($candidates as $candidate) {
+        if (in_array($candidate, $columns, true)) {
+            return $candidate;
+        }
+    }
+
+    return null;
+}
+
+$shopColumns = get_table_columns(db(), 'shops');
+$metricsColumns = get_table_columns(db(), 'shop_metrics');
+$availabilityColumns = get_table_columns(db(), 'shop_availability');
+$shopTownColumn = find_column($shopColumns, ['address_text', 'town', 'city', 'location']);
+
+$townMatch = trim($_POST['town_text'] ?? '');
+if ($townMatch === '') {
+    try {
+        $stmt = db()->prepare(
+            'SELECT town_text
+             FROM client_addresses
+             WHERE client_user_id = :client_user_id
+             AND town_text IS NOT NULL
+             ORDER BY is_default DESC, id DESC
+             LIMIT 1'
+        );
+        $stmt->execute(['client_user_id' => $user['id']]);
+        $townMatch = (string) ($stmt->fetchColumn() ?: '');
+    } catch (PDOException $exception) {
+        $townMatch = '';
+    }
+}
+
+$weights = dss_load_weights();
+$bounds = dss_load_metric_bounds($metricsColumns);
+$scoreInfo = dss_build_score_sql(
+    $weights,
+    $bounds,
+    $metricsColumns,
+    $availabilityColumns,
+    $shopTownColumn,
+    $townMatch === '' ? null : $townMatch
+);
+$scoreSql = $scoreInfo['sql'];
+$scoreParams = $scoreInfo['params'];
+$recommendedShops = [];
+
+if ($scoreSql !== '0') {
+    try {
+        $shopJoins = [];
+        if ($metricsColumns) {
+            $shopJoins[] = 'LEFT JOIN shop_metrics sm ON sm.shop_id = s.id';
+        }
+        if ($availabilityColumns) {
+            $shopJoins[] = 'LEFT JOIN shop_availability sa ON sa.shop_id = s.id';
+        }
+        $shopJoinSql = $shopJoins ? "\n" . implode("\n", $shopJoins) : '';
+
+        $shopSql = "SELECT s.id, s.name, s.address_text,
+                COALESCE(sm.avg_rating, 0) AS avg_rating,
+                COALESCE(sm.review_count, 0) AS review_count,
+                $scoreSql AS recommended_score
+            FROM shops s
+            $shopJoinSql
+            WHERE s.status = 'active'
+            ORDER BY recommended_score DESC, s.id DESC
+            LIMIT 6";
+        $stmt = db()->prepare($shopSql);
+        foreach ($scoreParams as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+        $stmt->execute();
+        $recommendedShops = $stmt->fetchAll();
+    } catch (PDOException $exception) {
+        $recommendedShops = [];
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -141,6 +232,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
+            if ($selectedInviteIds && dss_table_exists('post_invites')) {
+                $recommendedIds = array_map('intval', array_column($recommendedShops, 'id'));
+                $inviteIds = array_values(array_intersect($selectedInviteIds, $recommendedIds));
+                if ($inviteIds) {
+                    $insertInvite = db()->prepare(
+                        'INSERT INTO post_invites (post_id, shop_id, created_at)
+                         VALUES (:post_id, :shop_id, :created_at)'
+                    );
+                    foreach ($inviteIds as $shopId) {
+                        $insertInvite->execute([
+                            'post_id' => $postId,
+                            'shop_id' => $shopId,
+                            'created_at' => gmdate('Y-m-d H:i:s'),
+                        ]);
+                    }
+                }
+            }
+
             db()->commit();
             flash_set('success', 'Post created successfully.');
             header('Location: /client/posts');
@@ -217,6 +326,35 @@ require __DIR__ . '/../../includes/header.php';
         <input class="form-control" id="post_files" type="file" name="post_files[]" multiple accept=".jpg,.jpeg,.png,.pdf">
         <div class="form-text">Upload mood boards, size guides, or reference files (max 5MB each).</div>
     </div>
+
+    <?php if ($recommendedShops): ?>
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <strong>Recommended shops to invite (optional)</strong>
+            </div>
+            <div class="list-group list-group-flush">
+                <?php foreach ($recommendedShops as $shop): ?>
+                    <label class="list-group-item d-flex align-items-start gap-3">
+                        <input class="form-check-input mt-1" type="checkbox" name="invite_shop_ids[]"
+                               value="<?= (int) $shop['id'] ?>" <?= in_array((int) $shop['id'], $selectedInviteIds, true) ? 'checked' : '' ?>>
+                        <div>
+                            <div class="fw-semibold"><?= htmlspecialchars($shop['name'], ENT_QUOTES, 'UTF-8') ?></div>
+                            <?php if (!empty($shop['address_text'])): ?>
+                                <div class="small text-muted"><?= htmlspecialchars($shop['address_text'], ENT_QUOTES, 'UTF-8') ?></div>
+                            <?php endif; ?>
+                            <div class="small text-muted">
+                                ⭐ <?= number_format((float) ($shop['avg_rating'] ?? 0), 1) ?>
+                                (<?= (int) ($shop['review_count'] ?? 0) ?> reviews)
+                            </div>
+                        </div>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="small text-muted">We will notify these shops once your post is published.</div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php if ($designs): ?>
         <div class="mb-3">

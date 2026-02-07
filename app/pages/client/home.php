@@ -2,9 +2,11 @@
 
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
+require_once __DIR__ . '/../../includes/dss_helpers.php';
 
 require_role(['client']);
 
+$currentUser = current_user();
 $pageTitle = 'Marketplace';
 
 $categoryId = (int) ($_GET['category'] ?? 0);
@@ -37,10 +39,87 @@ function get_table_columns(PDO $pdo, string $table): array
     }
 }
 
+function find_column(array $columns, array $candidates): ?string
+{
+    foreach ($candidates as $candidate) {
+        if (in_array($candidate, $columns, true)) {
+            return $candidate;
+        }
+    }
+
+    return null;
+}
+
 try {
     $categories = db()->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
 } catch (PDOException $exception) {
     $errors[] = 'Unable to load categories right now.';
+}
+
+$shopColumns = get_table_columns(db(), 'shops');
+$metricsColumns = get_table_columns(db(), 'shop_metrics');
+$availabilityColumns = get_table_columns(db(), 'shop_availability');
+$shopTownColumn = find_column($shopColumns, ['address_text', 'town', 'city', 'location']);
+
+$clientTown = null;
+try {
+    $stmt = db()->prepare(
+        'SELECT town_text
+         FROM client_addresses
+         WHERE client_user_id = :client_user_id
+         AND town_text IS NOT NULL
+         ORDER BY is_default DESC, id DESC
+         LIMIT 1'
+    );
+    $stmt->execute(['client_user_id' => $currentUser['id']]);
+    $clientTown = $stmt->fetchColumn() ?: null;
+} catch (PDOException $exception) {
+    $clientTown = null;
+}
+
+$weights = dss_load_weights();
+$bounds = dss_load_metric_bounds($metricsColumns);
+$scoreInfo = dss_build_score_sql(
+    $weights,
+    $bounds,
+    $metricsColumns,
+    $availabilityColumns,
+    $shopTownColumn,
+    $clientTown
+);
+$scoreSql = $scoreInfo['sql'];
+$scoreParams = $scoreInfo['params'];
+
+$recommendedShops = [];
+if ($scoreSql !== '0') {
+    try {
+        $shopJoins = [];
+        if ($metricsColumns) {
+            $shopJoins[] = 'LEFT JOIN shop_metrics sm ON sm.shop_id = s.id';
+        }
+        if ($availabilityColumns) {
+            $shopJoins[] = 'LEFT JOIN shop_availability sa ON sa.shop_id = s.id';
+        }
+        $shopJoinSql = $shopJoins ? "\n" . implode("\n", $shopJoins) : '';
+
+        $shopSql = "SELECT s.id, s.name, s.address_text, s.logo_path,
+                COALESCE(sm.avg_rating, 0) AS avg_rating,
+                COALESCE(sm.review_count, 0) AS review_count,
+                $scoreSql AS recommended_score
+            FROM shops s
+            $shopJoinSql
+            WHERE s.status = 'active'
+            ORDER BY recommended_score DESC, s.id DESC
+            LIMIT 4";
+        $stmt = db()->prepare($shopSql);
+        foreach ($scoreParams as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+        $stmt->execute();
+        $recommendedShops = $stmt->fetchAll();
+    } catch (PDOException $exception) {
+        $recommendedShops = [];
+    }
 }
 
 try {
@@ -98,16 +177,27 @@ try {
             $sortSql = 'p.recommended_score DESC';
         } elseif (in_array('score', $columns, true)) {
             $sortSql = 'p.score DESC';
+        } elseif ($scoreSql !== '0') {
+            $sortSql = 'recommended_score DESC';
         }
     }
+
+    $joins = [
+        'LEFT JOIN shops s ON s.id = p.shop_id',
+        'LEFT JOIN shop_metrics sm ON sm.shop_id = p.shop_id',
+    ];
+    if ($availabilityColumns) {
+        $joins[] = 'LEFT JOIN shop_availability sa ON sa.shop_id = p.shop_id';
+    }
+    $joinSql = implode("\n", $joins);
 
     $sql = "SELECT p.id, p.name, p.base_price, p.created_at, s.name AS shop_name,
             COALESCE(sm.avg_rating, 0) AS avg_rating,
             COALESCE(sm.review_count, 0) AS review_count,
+            $scoreSql AS recommended_score,
             pi.image_path
         FROM products p
-        LEFT JOIN shops s ON s.id = p.shop_id
-        LEFT JOIN shop_metrics sm ON sm.shop_id = p.shop_id
+        $joinSql
         LEFT JOIN (
             SELECT pi1.product_id, pi1.image_path
             FROM product_images pi1
@@ -124,6 +214,9 @@ try {
     $stmt = db()->prepare($sql);
     foreach ($params as $key => $value) {
         $stmt->bindValue(':' . $key, $value, PDO::PARAM_INT);
+    }
+    foreach ($scoreParams as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
     }
     $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -150,6 +243,49 @@ require __DIR__ . '/../../includes/header.php';
 <?php foreach ($errors as $error): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endforeach; ?>
+
+<?php if ($recommendedShops): ?>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h6 mb-0">Recommended shops for you</h2>
+            <span class="small text-muted">Based on performance & location</span>
+        </div>
+        <div class="row g-3">
+            <?php foreach ($recommendedShops as $shop): ?>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex gap-3">
+                                <?php if (!empty($shop['logo_path'])): ?>
+                                    <img src="<?= htmlspecialchars($shop['logo_path'], ENT_QUOTES, 'UTF-8') ?>"
+                                         alt="<?= htmlspecialchars($shop['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                         class="rounded" style="width: 56px; height: 56px; object-fit: cover;">
+                                <?php else: ?>
+                                    <div class="bg-secondary-subtle d-flex align-items-center justify-content-center rounded" style="width: 56px; height: 56px;">
+                                        <span class="text-muted small">Shop</span>
+                                    </div>
+                                <?php endif; ?>
+                                <div>
+                                    <div class="fw-semibold"><?= htmlspecialchars($shop['name'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php if (!empty($shop['address_text'])): ?>
+                                        <div class="text-muted small"><?= htmlspecialchars($shop['address_text'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php endif; ?>
+                                    <div class="small text-muted">
+                                        ⭐ <?= number_format((float) ($shop['avg_rating'] ?? 0), 1) ?>
+                                        (<?= (int) ($shop['review_count'] ?? 0) ?> reviews)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <a class="btn btn-outline-primary w-100" href="/shop/<?= (int) $shop['id'] ?>">View shop</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <form class="row g-3 align-items-end mb-4" method="get">
     <div class="col-md-5">

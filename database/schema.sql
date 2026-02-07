@@ -136,6 +136,40 @@ CREATE TABLE IF NOT EXISTS shop_availability (
     updated_at DATETIME NULL,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS shop_metrics (
+    shop_id INT PRIMARY KEY,
+    avg_rating DECIMAL(3, 2) NOT NULL DEFAULT 0,
+    review_count INT NOT NULL DEFAULT 0,
+    completion_rate DECIMAL(5, 2) NOT NULL DEFAULT 0,
+    avg_turnaround_days DECIMAL(6, 2) NOT NULL DEFAULT 0,
+    price_index DECIMAL(6, 2) NOT NULL DEFAULT 0,
+    cancellation_rate DECIMAL(5, 2) NOT NULL DEFAULT 0,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS dss_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_user_id INT NOT NULL,
+    query_json JSON NOT NULL,
+    results_json JSON NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (client_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_dss_logs_client (client_user_id),
+    INDEX idx_dss_logs_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS post_invites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_post_invite (post_id, shop_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS shop_documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     shop_id INT NOT NULL,
