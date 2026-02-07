@@ -197,6 +197,17 @@ CREATE TABLE IF NOT EXISTS dss_global_weights (
     weight DECIMAL(6, 4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS dss_recalculation_jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    triggered_by INT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'queued',
+    created_at DATETIME NOT NULL,
+    completed_at DATETIME NULL,
+    FOREIGN KEY (triggered_by) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_dss_recalculation_status (status),
+    INDEX idx_dss_recalculation_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS moderation_actions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin_user_id INT NOT NULL,

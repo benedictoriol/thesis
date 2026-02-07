@@ -66,6 +66,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         }
+        
+        if ($action === 'update_thresholds') {
+            $minScore = trim($_POST['threshold_min_score'] ?? '');
+            $maxScore = trim($_POST['threshold_max_score'] ?? '');
+
+            if ($minScore === '' || $maxScore === '') {
+                $errors[] = 'Both threshold values are required.';
+            } else {
+                $stmt = db()->prepare(
+                    'INSERT INTO system_settings (`key`, value) VALUES (:key, :value)
+                     ON DUPLICATE KEY UPDATE value = VALUES(value)'
+                );
+                $stmt->execute(['key' => 'dss_threshold_min_score', 'value' => $minScore]);
+                $stmt->execute(['key' => 'dss_threshold_max_score', 'value' => $maxScore]);
+                audit_log((int) $currentUser['id'], 'update_dss_thresholds', 'system_settings', null, [
+                    'dss_threshold_min_score' => $minScore,
+                    'dss_threshold_max_score' => $maxScore,
+                ]);
+                flash_set('success', 'DSS thresholds updated.');
+                header('Location: /admin/dss/config');
+                exit;
+            }
+        }
+
+        if ($action === 'run_recalculation') {
+            $stmt = db()->prepare(
+                'INSERT INTO dss_recalculation_jobs (triggered_by, status, created_at)
+                 VALUES (:triggered_by, :status, :created_at)'
+            );
+            $stmt->execute([
+                'triggered_by' => (int) $currentUser['id'],
+                'status' => 'queued',
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $jobId = (int) db()->lastInsertId();
+            audit_log((int) $currentUser['id'], 'queue_dss_recalculation', 'dss_recalculation_jobs', $jobId, []);
+            flash_set('success', 'DSS recalculation queued.');
+            header('Location: /admin/dss/config');
+            exit;
+        }
     }
 }
 
@@ -73,6 +113,16 @@ $successMessage = flash_get('success');
 
 $weights = db()->query('SELECT * FROM dss_global_weights ORDER BY criterion')->fetchAll();
 $settings = db()->query('SELECT * FROM system_settings ORDER BY `key`')->fetchAll();
+$thresholds = [
+    'dss_threshold_min_score' => null,
+    'dss_threshold_max_score' => null,
+];
+foreach ($settings as $setting) {
+    if (array_key_exists($setting['key'], $thresholds)) {
+        $thresholds[$setting['key']] = $setting['value'];
+    }
+}
+$jobs = db()->query('SELECT * FROM dss_recalculation_jobs ORDER BY created_at DESC LIMIT 5')->fetchAll();
 
 require __DIR__ . '/../../includes/admin_header.php';
 ?>
@@ -193,6 +243,58 @@ require __DIR__ . '/../../includes/admin_header.php';
                 <?php if (!$settings): ?>
                     <div class="list-group-item text-muted">No system settings recorded.</div>
                 <?php endif; ?>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <strong>DSS thresholds</strong>
+            </div>
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    <?= csrf_field(); ?>
+                    <input type="hidden" name="action" value="update_thresholds">
+                    <div class="col-6">
+                        <label class="form-label">Minimum score</label>
+                        <input class="form-control" type="number" step="0.01" name="threshold_min_score" value="<?= htmlspecialchars((string) ($thresholds['dss_threshold_min_score'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Maximum score</label>
+                        <input class="form-control" type="number" step="0.01" name="threshold_max_score" value="<?= htmlspecialchars((string) ($thresholds['dss_threshold_max_score'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-primary w-100" type="submit">Save thresholds</button>
+                    </div>
+                </form>
+                <div class="small text-muted mt-2">Thresholds are used to bound DSS scoring and alerts.</div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <strong>DSS recalculation</strong>
+            </div>
+            <div class="card-body">
+                <form method="post" class="mb-3">
+                    <?= csrf_field(); ?>
+                    <input type="hidden" name="action" value="run_recalculation">
+                    <button class="btn btn-warning w-100" type="submit">Rerun DSS recalculation</button>
+                </form>
+                <div class="small text-muted mb-3">Queues a backend job to recompute DSS scores.</div>
+                <div class="list-group list-group-flush">
+                    <?php foreach ($jobs as $job): ?>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <strong>#<?= htmlspecialchars((string) $job['id'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                <span class="badge bg-secondary"><?= htmlspecialchars($job['status'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </div>
+                            <div class="small text-muted">Queued at <?= htmlspecialchars($job['created_at'], ENT_QUOTES, 'UTF-8') ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if (!$jobs): ?>
+                        <div class="list-group-item text-muted">No recalculation jobs queued yet.</div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
