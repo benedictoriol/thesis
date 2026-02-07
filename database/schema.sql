@@ -179,10 +179,71 @@ CREATE TABLE IF NOT EXISTS shop_staff (
     shop_id INT NOT NULL,
     user_id INT NOT NULL,
     role ENUM('hr', 'employee') NOT NULL,
+    position VARCHAR(255) NULL,
+    status ENUM('active', 'disabled') NOT NULL DEFAULT 'active',
+    can_quote TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_orders TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_inventory TINYINT(1) NOT NULL DEFAULT 0,
+    hired_at DATETIME NULL,
     created_at DATETIME NOT NULL,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY uniq_shop_staff (shop_id, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+@@ -157,56 +157,79 @@ CREATE TABLE IF NOT EXISTS system_settings (
+    value TEXT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS dss_global_weights (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    criterion VARCHAR(255) NOT NULL,
+    weight DECIMAL(6, 4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS moderation_actions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_user_id INT NOT NULL,
+    entity VARCHAR(100) NOT NULL,
+    entity_id INT NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    reason TEXT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS shop_staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('hr', 'employee') NOT NULL,
+    position VARCHAR(255) NULL,
+    status ENUM('active', 'disabled') NOT NULL DEFAULT 'active',
+    can_quote TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_orders TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_inventory TINYINT(1) NOT NULL DEFAULT 0,
+    hired_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_shop_staff (shop_id, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    user_id INT NULL,
+    fullname VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NULL,
+    position VARCHAR(255) NULL,
+    status ENUM('pending', 'approved', 'rejected', 'converted') NOT NULL DEFAULT 'pending',
+    applied_at DATETIME NOT NULL,
+    approved_at DATETIME NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_applications_shop (shop_id),
+    INDEX idx_applications_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS conversations (

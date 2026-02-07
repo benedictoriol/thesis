@@ -59,6 +59,11 @@ $routes = [
     '/owner/catalog/create' => __DIR__ . '/../app/pages/owner/catalog_create.php',
     '/owner/portfolio' => __DIR__ . '/../app/pages/owner/portfolio.php',
     '/owner/portfolio/create' => __DIR__ . '/../app/pages/owner/portfolio_create.php',
+    '/owner/staff' => __DIR__ . '/../app/pages/owner/staff.php',
+    '/owner/staff/create-hr' => __DIR__ . '/../app/pages/owner/create_hr.php',
+    '/owner/staff/permissions' => __DIR__ . '/../app/pages/owner/staff_permissions.php',
+    '/owner/hiring/applicants' => __DIR__ . '/../app/pages/owner/hiring/applicants.php',
+    '/owner/staff/approved-employees' => __DIR__ . '/../app/pages/owner/approved_employees.php',
 ];
 
 if (!array_key_exists($path, $routes)) {
