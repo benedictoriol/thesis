@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
+require_once __DIR__ . '/../../handlers/production_handler.php';
 
 require_role(['employee']);
 
@@ -171,6 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ticket && !$errors) {
 
                     $pdo->commit();
                     $ticket['status'] = $status;
+                    apply_ticket_status_updates((int) $ticket['order_id'], $status, (int) $currentUser['id']);
 
                     flash_set('success', 'Ticket updated successfully.');
                     header('Location: /employee/tickets/' . $ticketId);

@@ -236,7 +236,18 @@ CREATE TABLE IF NOT EXISTS shop_staff (
     UNIQUE KEY uniq_shop_staff (shop_id, user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-@@ -157,56 +157,79 @@ CREATE TABLE IF NOT EXISTS system_settings (
+CREATE TABLE IF NOT EXISTS shop_step_defaults (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    step ENUM('digitizing', 'hooping', 'stitching', 'trimming', 'qc', 'packing') NOT NULL,
+    user_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_shop_step_default (shop_id, step)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS system_settings (
     value TEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
