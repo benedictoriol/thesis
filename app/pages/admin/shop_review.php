@@ -35,13 +35,31 @@ if (!$shop) {
 $stmt = db()->prepare('SELECT * FROM shop_verification WHERE shop_id = :shop_id LIMIT 1');
 $stmt->execute(['shop_id' => $shopId]);
 $verification = $stmt->fetch();
-$verification = $verification ?: [
+$verificationDefaults = [
     'status' => 'draft',
+    'shop_name' => null,
+    'pickup_address' => null,
+    'shop_email' => null,
+    'shop_phone' => null,
+    'individual_name' => null,
+    'business_name' => null,
+    'business_address' => null,
+    'primary_document_type' => null,
+    'government_id_type' => null,
+    'business_email' => null,
+    'business_phone' => null,
+    'tax_identification_number' => null,
+    'vat_registration' => null,
+    'bir_certification' => null,
+    'sworn_declaration' => 0,
+    'terms_accepted' => 0,
+    'updated_at' => null,
     'submitted_at' => null,
     'reviewed_at' => null,
     'reviewed_by_user_id' => null,
     'admin_note' => null,
 ];
+$verification = $verification ? array_merge($verificationDefaults, $verification) : $verificationDefaults;
 
 $stmt = db()->prepare('SELECT * FROM shop_documents WHERE shop_id = :shop_id ORDER BY uploaded_at DESC');
 $stmt->execute(['shop_id' => $shopId]);
@@ -138,6 +156,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $successMessage = flash_get('success');
+$vatLabel = match ($verification['vat_registration']) {
+    'vat_registered' => 'VAT registered',
+    'non_vat_registered' => 'Non-VAT registered',
+    default => '—',
+};
 
 require __DIR__ . '/../../includes/admin_header.php';
 ?>
@@ -167,6 +190,50 @@ require __DIR__ . '/../../includes/admin_header.php';
                 <p class="mb-1"><strong>Address:</strong> <?= htmlspecialchars($shop['address_text'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
                 <p class="mb-1"><strong>Status:</strong> <?= htmlspecialchars($shop['status'], ENT_QUOTES, 'UTF-8') ?></p>
                 <p class="mb-0"><strong>Verification:</strong> <?= htmlspecialchars($verification['status'], ENT_QUOTES, 'UTF-8') ?></p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <strong>Application details</strong>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Shop name</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['shop_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Pick up address</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['pickup_address'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Shop email</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['shop_email'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Shop phone</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['shop_phone'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Individual name</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['individual_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Business name</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['business_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Business address</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['business_address'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Primary document</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['primary_document_type'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Government ID</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['government_id_type'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Business email</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['business_email'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Business phone</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['business_phone'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Tax ID</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['tax_identification_number'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">VAT registration</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($vatLabel, ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">BIR certification</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['bir_certification'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dt class="col-sm-4">Sworn declaration</dt>
+                    <dd class="col-sm-8"><?= $verification['sworn_declaration'] ? 'Yes' : 'No' ?></dd>
+                    <dt class="col-sm-4">Terms accepted</dt>
+                    <dd class="col-sm-8"><?= $verification['terms_accepted'] ? 'Yes' : 'No' ?></dd>
+                    <dt class="col-sm-4">Last updated</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($verification['updated_at'] ?? '—', ENT_QUOTES, 'UTF-8') ?></dd>
+                </dl>
             </div>
         </div>
 

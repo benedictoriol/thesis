@@ -19,6 +19,7 @@ $documentTypes = [
     'dti_sec' => 'DTI/SEC registration',
     'valid_id' => 'Valid government ID',
     'location_proof' => 'Proof of location',
+    'bir_certificate' => 'BIR certification of registration',
     'other' => 'Other supporting file',
 ];
 
