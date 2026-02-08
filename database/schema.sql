@@ -423,6 +423,7 @@ CREATE TABLE IF NOT EXISTS custom_design_layers (
     color VARCHAR(40) NULL,
     font VARCHAR(120) NULL,
     font_size INT NULL,
+    font_weight INT NULL,
     created_at DATETIME NOT NULL,
     FOREIGN KEY (design_id) REFERENCES custom_designs(id) ON DELETE CASCADE,
     INDEX idx_custom_design_layers_design (design_id),

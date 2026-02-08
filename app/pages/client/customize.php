@@ -10,6 +10,12 @@ $user = current_user();
 $maxLayers = 10;
 $maxFileSize = 5 * 1024 * 1024;
 $itemTypes = ['tshirt', 'cap', 'bag', 'logo'];
+$itemTypeLabels = [
+    'tshirt' => 'T-Shirt',
+    'cap' => 'Cap',
+    'bag' => 'Bag',
+    'logo' => 'Logo Embroidery',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'upload_image') {
     header('Content-Type: application/json');
@@ -136,9 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
 
             $layerStmt = db()->prepare(
                 'INSERT INTO custom_design_layers
-                    (design_id, layer_type, content, x, y, scale, rotation, color, font, font_size, created_at)
+                    (design_id, layer_type, content, x, y, scale, rotation, color, font, font_size, font_weight, created_at)
                  VALUES
-                    (:design_id, :layer_type, :content, :x, :y, :scale, :rotation, :color, :font, :font_size, :created_at)'
+                    (:design_id, :layer_type, :content, :x, :y, :scale, :rotation, :color, :font, :font_size, :font_weight, :created_at)'
             );
 
             foreach ($layers as $layer) {
@@ -161,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                     'color' => $layerType === 'text' ? ($layer['color'] ?? null) : null,
                     'font' => $layerType === 'text' ? ($layer['font'] ?? null) : null,
                     'font_size' => $layerType === 'text' ? (int) ($layer['font_size'] ?? 24) : null,
+                    'font_weight' => $layerType === 'text' ? (int) ($layer['font_weight'] ?? 600) : null,
                     'created_at' => gmdate('Y-m-d H:i:s'),
                 ]);
             }
@@ -180,7 +187,7 @@ $pageTitle = 'Design Builder';
 require __DIR__ . '/../../includes/header.php';
 ?>
 <h1 class="h4 mb-3">Design Builder</h1>
-<p class="text-muted small">Create a custom <?= htmlspecialchars($itemType, ENT_QUOTES, 'UTF-8') ?> design by adding images or text layers.</p>
+<p class="text-muted small">Create a custom <?= htmlspecialchars($itemTypeLabels[$itemType] ?? $itemType, ENT_QUOTES, 'UTF-8') ?> design by adding images or text layers.</p>
 
 <?php foreach ($errors as $error): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
@@ -206,7 +213,7 @@ require __DIR__ . '/../../includes/header.php';
                 <select class="form-select" id="item-type" name="item_type">
                     <?php foreach ($itemTypes as $type): ?>
                         <option value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?>" <?= $type === $itemType ? 'selected' : '' ?>>
-                            <?= strtoupper($type) ?>
+                            <?= htmlspecialchars($itemTypeLabels[$type] ?? strtoupper($type), ENT_QUOTES, 'UTF-8') ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -222,7 +229,7 @@ require __DIR__ . '/../../includes/header.php';
                 <div class="d-flex flex-wrap gap-3">
                     <div class="flex-grow-1">
                         <div class="design-board" id="design-board"></div>
-                        <p class="text-muted small mt-2 mb-0">Drag layers to reposition. Select a layer to edit its rotation, scale, and styling.</p>
+                        <p class="text-muted small mt-2 mb-0">Drag layers freely to reposition. Select a layer to edit its rotation, scale, and styling.</p>
                     </div>
                     <div class="design-panel">
                         <h2 class="h6">Layer controls</h2>
@@ -250,6 +257,10 @@ require __DIR__ . '/../../includes/header.php';
                         <div>
                             <label class="form-label">Font size</label>
                             <input type="number" class="form-control" id="font-size-control" min="12" max="96" value="32">
+                        </div>
+                        <div class="mt-2">
+                            <label class="form-label">Text thickness</label>
+                            <input type="range" class="form-range" min="100" max="900" step="100" id="weight-control" value="600">
                         </div>
                     </div>
                 </div>
@@ -298,6 +309,7 @@ const rotationControl = document.getElementById('rotation-control');
 const colorControl = document.getElementById('color-control');
 const fontControl = document.getElementById('font-control');
 const fontSizeControl = document.getElementById('font-size-control');
+const weightControl = document.getElementById('weight-control');
 const layersField = document.getElementById('layers-field');
 const previewField = document.getElementById('preview-field');
 const form = document.getElementById('design-form');
@@ -306,6 +318,14 @@ const csrfToken = document.querySelector('input[name="csrf_token"]').value;
 const layers = [];
 let selectedLayerId = null;
 let dragState = null;
+
+function setTextControlsEnabled(enabled) {
+    [colorControl, fontControl, fontSizeControl, weightControl].forEach((control) => {
+        control.disabled = !enabled;
+    });
+}
+
+setTextControlsEnabled(false);
 
 function setSelectedLayer(id) {
     selectedLayerId = id;
@@ -323,9 +343,13 @@ function setSelectedLayer(id) {
     scaleControl.value = layer.scale;
     rotationControl.value = layer.rotation;
     if (layer.type === 'text') {
+        setTextControlsEnabled(true);
         colorControl.value = layer.color || '#111111';
         fontControl.value = layer.font || 'Arial';
         fontSizeControl.value = layer.font_size || 32;
+        weightControl.value = layer.font_weight || 600;
+    } else {
+        setTextControlsEnabled(false);
     }
 }
 
@@ -342,7 +366,7 @@ function renderLayers() {
             el.style.color = layer.color || '#111111';
             el.style.fontFamily = layer.font || 'Arial';
             el.style.fontSize = `${layer.font_size || 32}px`;
-            el.style.fontWeight = '600';
+            el.style.fontWeight = layer.font_weight || 600;
         }
         el.classList.add('design-layer');
         el.dataset.layerId = layer.id;
@@ -428,6 +452,7 @@ addTextBtn.addEventListener('click', () => {
         color: colorControl.value,
         font: fontControl.value,
         font_size: parseInt(fontSizeControl.value, 10) || 32,
+        font_weight: parseInt(weightControl.value, 10) || 600,
     });
 });
 
@@ -440,8 +465,8 @@ window.addEventListener('mousemove', (event) => {
     if (!layer) {
         return;
     }
-    layer.x = Math.max(0, Math.min(board.clientWidth, event.clientX - rect.left - dragState.offsetX));
-    layer.y = Math.max(0, Math.min(board.clientHeight, event.clientY - rect.top - dragState.offsetY));
+    layer.x = event.clientX - rect.left - dragState.offsetX;
+    layer.y = event.clientY - rect.top - dragState.offsetY;
     renderLayers();
 });
 
@@ -449,7 +474,7 @@ window.addEventListener('mouseup', () => {
     dragState = null;
 });
 
-[scaleControl, rotationControl, colorControl, fontControl, fontSizeControl].forEach((control) => {
+[scaleControl, rotationControl, colorControl, fontControl, fontSizeControl, weightControl].forEach((control) => {
     control.addEventListener('input', () => {
         const layer = layers.find((item) => item.id === selectedLayerId);
         if (!layer) {
@@ -461,6 +486,7 @@ window.addEventListener('mouseup', () => {
             layer.color = colorControl.value;
             layer.font = fontControl.value;
             layer.font_size = parseInt(fontSizeControl.value, 10) || 32;
+            layer.font_weight = parseInt(weightControl.value, 10) || 600;
         }
         renderLayers();
     });
@@ -477,6 +503,7 @@ function serializeLayers() {
         color: layer.color || null,
         font: layer.font || null,
         font_size: layer.font_size || null,
+        font_weight: layer.font_weight || null,
     }));
 }
 
@@ -505,7 +532,7 @@ function generatePreview() {
             });
         }
         ctx.fillStyle = layer.color || '#111111';
-        ctx.font = `${layer.font_size || 32}px ${layer.font || 'Arial'}`;
+        ctx.font = `${layer.font_weight || 600} ${layer.font_size || 32}px ${layer.font || 'Arial'}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(layer.content, 0, 0);

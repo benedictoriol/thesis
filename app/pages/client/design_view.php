@@ -81,6 +81,7 @@ require __DIR__ . '/../../includes/header.php';
                         <th>Position</th>
                         <th>Scale</th>
                         <th>Rotation</th>
+                        <th>Thickness</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,6 +94,11 @@ require __DIR__ . '/../../includes/header.php';
                             <td><?= htmlspecialchars($layer['x'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($layer['y'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($layer['scale'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($layer['rotation'], ENT_QUOTES, 'UTF-8') ?>°</td>
+                            <td>
+                                <?= $layer['layer_type'] === 'text'
+                                    ? htmlspecialchars((string) ($layer['font_weight'] ?? '600'), ENT_QUOTES, 'UTF-8')
+                                    : '—' ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
