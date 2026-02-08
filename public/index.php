@@ -21,7 +21,9 @@ if ($path === '') {
 }
 
 $routes = [
-    '/' => __DIR__ . '/../app/pages/auth/login.php',
+    '/' => __DIR__ . '/../app/pages/landing.php',
+    '/landing' => __DIR__ . '/../app/pages/landing.php',
+    '/public/index.php' => __DIR__ . '/../app/pages/landing.php',
     '/auth/login' => __DIR__ . '/../app/pages/auth/login.php',
     '/auth/register_client' => __DIR__ . '/../app/pages/auth/register_client.php',
     '/auth/register_owner' => __DIR__ . '/../app/pages/auth/register_owner.php',
