@@ -48,7 +48,8 @@ if ($shop && !$errors) {
              FROM payments p
              JOIN orders o ON o.id = p.order_id
              WHERE o.shop_id = :shop_id
-               AND p.status = "verified"
+               AND o.status = "completed"
+               AND (p.status = "verified" OR p.method IN ("cod", "pickup_cash"))
              GROUP BY month
              ORDER BY month DESC
              LIMIT 6'
@@ -58,9 +59,10 @@ if ($shop && !$errors) {
 
         $stmt = db()->prepare(
             'SELECT COUNT(*) AS total,
-                    SUM(CASE WHEN status = "accepted" THEN 1 ELSE 0 END) AS accepted
-             FROM quote_requests
-             WHERE shop_id = :shop_id'
+                    SUM(CASE WHEN q.status = "accepted" THEN 1 ELSE 0 END) AS accepted
+             FROM quotes q
+             JOIN quote_requests qr ON qr.id = q.quote_request_id
+             WHERE qr.shop_id = :shop_id'
         );
         $stmt->execute(['shop_id' => $shop['id']]);
         $quoteStats = $stmt->fetch() ?: $quoteStats;
@@ -159,7 +161,7 @@ require __DIR__ . '/../../includes/header.php';
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Earnings by month</h2>
                     <?php if (!$earningsByMonth): ?>
-                        <p class="text-muted mb-0">No verified payments yet.</p>
+                        <p class="text-muted mb-0">No earnings recorded yet.</p>
                     <?php endif; ?>
                     <?php foreach ($earningsByMonth as $row): ?>
                         <div class="d-flex justify-content-between border-bottom py-1">
@@ -179,7 +181,7 @@ require __DIR__ . '/../../includes/header.php';
                     </div>
                     <p class="text-muted mb-2">
                         <?= htmlspecialchars((string) $quoteAccepted, ENT_QUOTES, 'UTF-8') ?> accepted out of
-                        <?= htmlspecialchars((string) $quoteTotal, ENT_QUOTES, 'UTF-8') ?> requests.
+                        <?= htmlspecialchars((string) $quoteTotal, ENT_QUOTES, 'UTF-8') ?> quotes sent.
                     </p>
                     <span class="badge bg-light text-dark">Rolling total</span>
                 </div>
