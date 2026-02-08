@@ -49,7 +49,7 @@ $errorMessage = flash_get('error');
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="app-body">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg app-navbar navbar-dark">
     <div class="container-fluid">
         <span class="navbar-brand">Thesis Portal</span>
         <div class="d-flex align-items-center gap-3 text-white">

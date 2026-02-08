@@ -16,7 +16,7 @@ $currentUserName = $currentUser['fullname'] ?? 'SYS_ADMIN';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="app-body">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg app-navbar navbar-dark">
     <div class="container-fluid">
         <span class="navbar-brand">Governance Console</span>
         <div class="d-flex align-items-center text-white">
@@ -27,7 +27,7 @@ $currentUserName = $currentUser['fullname'] ?? 'SYS_ADMIN';
 </nav>
 <div class="container-fluid app-shell">
     <div class="row">
-        <aside class="col-lg-2 border-end bg-white min-vh-100 p-3">
+        <aside class="col-lg-2 min-vh-100 p-3 app-sidebar">
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action <?= $activeNav === 'dashboard' ? 'active' : '' ?>" href="/admin/dashboard">Dashboard</a>
                 <a class="list-group-item list-group-item-action <?= $activeNav === 'applications' ? 'active' : '' ?>" href="/admin/shops/applications">Shop Applications</a>

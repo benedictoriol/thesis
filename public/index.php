@@ -15,6 +15,23 @@ require_once __DIR__ . '/../app/includes/csrf.php';
 require_once __DIR__ . '/../app/includes/flash.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+if (str_ends_with($scriptDir, '/public')) {
+    $scriptDir = substr($scriptDir, 0, -7);
+}
+$basePath = rtrim($scriptDir, '/');
+if ($basePath === '/') {
+    $basePath = '';
+}
+if ($basePath !== '' && str_starts_with($uri, $basePath)) {
+    $uri = substr($uri, strlen($basePath));
+}
+if ($basePath !== '') {
+    ob_start(static function (string $content) use ($basePath): string {
+        return preg_replace('~\\b(href|src|action)=([\"\'])/(?!/)~', '$1=$2' . $basePath . '/', $content);
+    });
+}
+
 $path = rtrim($uri, '/');
 if ($path === '') {
     $path = '/';
