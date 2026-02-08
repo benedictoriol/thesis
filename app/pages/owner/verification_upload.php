@@ -123,8 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'uploa
                     );
 
                     flash_set('success', 'Document uploaded successfully.');
-                    header('Location: /owner/verification/upload');
-                    exit;
+                    redirect('/owner/verification/upload');
                 }
             }
         }
@@ -133,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'uploa
 
 $successMessage = flash_get('success');
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <h1 class="h4 mb-2">Upload Verification Documents</h1>
@@ -200,4 +199,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

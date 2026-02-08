@@ -133,8 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'conve
                             $message .= ' Temporary password: ' . $temporaryPassword;
                         }
                         flash_set('success', $message);
-                        header('Location: /owner/hiring/applicants');
-                        exit;
+                        redirect('/owner/hiring/applicants');
                     }
                 }
             } catch (PDOException $exception) {
@@ -195,7 +194,7 @@ $staffNavItems = [
     ['label' => 'Approved employees', 'path' => '/owner/staff/approved-employees'],
 ];
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
@@ -292,4 +291,4 @@ require __DIR__ . '/../../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/app_footer.php'; ?>

@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the request is for an existing file/dir (e.g. assets, uploads), serve it normally.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Otherwise, forward everything to /public (which contains the front controller).
+    RewriteRule ^(.*)$ public/$1 [QSA,L]
+</IfModule>

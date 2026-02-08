@@ -51,8 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_l
                     'description' => $formValues['description'] ?: null,
                 ]);
                 flash_set('success', 'Storage location added successfully.');
-                header('Location: /hr/inventory/storage');
-                exit;
+                redirect('/hr/inventory/storage');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to save the storage location right now.';
             }
@@ -76,7 +75,7 @@ if (!$errors) {
     }
 }
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -148,4 +147,4 @@ require __DIR__ . '/../../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/app_footer.php'; ?>

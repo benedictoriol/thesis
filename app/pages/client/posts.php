@@ -53,7 +53,7 @@ try {
     $errors[] = 'Unable to load posts right now.';
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Client posts</h1>
 <p class="text-muted">Browse open requests or manage your active posts.</p>
@@ -107,4 +107,4 @@ require __DIR__ . '/../../includes/header.php';
     <?php endforeach; ?>
 </div>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

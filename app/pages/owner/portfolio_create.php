@@ -150,8 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 }
 
                 flash_set('success', 'Portfolio item created successfully.');
-                header('Location: /owner/portfolio');
-                exit;
+                redirect('/owner/portfolio');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to create portfolio item right now.';
             }
@@ -159,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -227,4 +226,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

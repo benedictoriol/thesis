@@ -93,8 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 $stmt = db()->prepare($sql);
                 $stmt->execute($insertValues);
                 flash_set('success', 'Hiring post created successfully.');
-                header('Location: /hr/hiring');
-                exit;
+                redirect('/hr/hiring');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to create hiring post right now.';
             }
@@ -102,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
@@ -173,4 +172,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

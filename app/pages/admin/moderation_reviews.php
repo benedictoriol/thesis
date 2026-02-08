@@ -42,8 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], 'remove_review', 'review', $entityId, ['reason' => $reason]);
             flash_set('success', 'Review removal recorded.');
-            header('Location: /admin/moderation/reviews');
-            exit;
+            redirect('/admin/moderation/reviews');
         }
     }
 }

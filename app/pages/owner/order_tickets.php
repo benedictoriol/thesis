@@ -175,8 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
 
                     $pdo->commit();
                     flash_set('success', 'Production ticket created.');
-                    header('Location: /owner/orders/' . $orderId . '/tickets');
-                    exit;
+                    redirect_to('' . );
                 } catch (PDOException $exception) {
                     if (isset($pdo) && $pdo->inTransaction()) {
                         $pdo->rollBack();
@@ -225,7 +224,7 @@ if ($order) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -329,4 +328,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

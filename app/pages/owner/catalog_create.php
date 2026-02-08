@@ -194,8 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 }
 
                 flash_set('success', 'Listing created successfully.');
-                header('Location: /owner/catalog/' . $productId . '/edit');
-                exit;
+                redirect_to('' . );
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to create listing right now.';
             }
@@ -215,7 +214,7 @@ if (!$addonRows) {
     $addonRows = array_fill(0, 3, ['name' => '', 'price' => '']);
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -311,4 +310,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

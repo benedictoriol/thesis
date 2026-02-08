@@ -208,8 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                                 'assigned_at' => gmdate('Y-m-d H:i:s'),
                             ]);
                             flash_set('success', 'Employee assigned successfully.');
-                            header('Location: /owner/orders/' . $orderId);
-                            exit;
+                            redirect_to('' . );
                         }
                     } catch (PDOException $exception) {
                         $errors[] = 'Unable to assign employee right now.';
@@ -238,8 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                             'shop_id' => $shop['id'],
                         ]);
                         flash_set('success', 'Assignment removed.');
-                        header('Location: /owner/orders/' . $orderId);
-                        exit;
+                        redirect_to('' . );
                     } catch (PDOException $exception) {
                         $errors[] = 'Unable to remove assignment right now.';
                     }
@@ -267,8 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                         'created_at' => gmdate('Y-m-d H:i:s'),
                     ]);
                     flash_set('success', 'Job ticket generated.');
-                    header('Location: /owner/orders/' . $orderId);
-                    exit;
+                    redirect_to('' . );
                 } catch (Throwable $exception) {
                     $errors[] = 'Unable to generate a job ticket right now.';
                 }
@@ -308,8 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                                     'uploaded_at' => gmdate('Y-m-d H:i:s'),
                                 ]);
                                 flash_set('success', 'Proof uploaded successfully.');
-                                header('Location: /owner/orders/' . $orderId);
-                                exit;
+                                redirect_to('' . );
                             } catch (PDOException $exception) {
                                 $errors[] = 'Unable to record the proof image.';
                             }
@@ -344,8 +340,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                 }
                 
                 flash_set('success', 'Order updated successfully.');
-                header('Location: /owner/orders/' . $orderId);
-                exit;
+                redirect_to('' . );
             }
         }
     }
@@ -545,7 +540,7 @@ if ($order && table_exists('order_proofs')) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -912,5 +907,5 @@ require __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

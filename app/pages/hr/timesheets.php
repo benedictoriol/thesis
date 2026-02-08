@@ -67,7 +67,7 @@ if (!$timesheetColumns) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
@@ -121,4 +121,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

@@ -105,8 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'stock
 
             if ($saved) {
                 flash_set('success', 'Stock-in recorded successfully.');
-                header('Location: /hr/inventory/stock-in');
-                exit;
+                redirect('/hr/inventory/stock-in');
             }
 
             $errors[] = 'Unable to save stock-in transaction.';
@@ -142,7 +141,7 @@ if (!$errors) {
     }
 }
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -271,4 +270,4 @@ require __DIR__ . '/../../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/app_footer.php'; ?>

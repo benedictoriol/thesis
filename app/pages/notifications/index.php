@@ -10,16 +10,14 @@ $pageTitle = 'Notifications';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_verify()) {
         flash_set('error', 'Invalid request token.');
-        header('Location: /notifications');
-        exit;
+        redirect('/notifications');
     }
 
     $action = $_POST['action'] ?? '';
     if ($action === 'mark_all_read') {
         mark_all_notifications_read((int) $currentUser['id']);
         flash_set('success', 'All notifications marked as read.');
-        header('Location: /notifications');
-        exit;
+        redirect('/notifications');
     }
 
     if ($action === 'mark_read') {
@@ -28,8 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mark_notification_read((int) $currentUser['id'], $notificationId);
             flash_set('success', 'Notification marked as read.');
         }
-        header('Location: /notifications');
-        exit;
+        redirect('/notifications');
     }
 }
 

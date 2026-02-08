@@ -120,8 +120,7 @@ if ($user && $user['role'] === 'client' && ($_GET['action'] ?? '') === 'start') 
             if ($contextType === 'quote_request') {
                 ensure_quote_request($shopId, (int) $user['id'], $contextId);
             }
-            header('Location: /messages/' . $conversation['id']);
-            exit;
+            redirect_to('' . );
         } catch (InvalidArgumentException $exception) {
             $errors[] = $exception->getMessage();
         }
@@ -133,7 +132,7 @@ if ($user && $user['role'] === 'client' && ($_GET['action'] ?? '') === 'start') 
 $conversations = $user ? list_conversations_for_user($user) : [];
 
 $pageTitle = 'Messages';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Messages</h1>
 
@@ -182,4 +181,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

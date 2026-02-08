@@ -57,8 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_s
                     'notes' => $formValues['notes'] ?: null,
                 ]);
                 flash_set('success', 'Supplier added successfully.');
-                header('Location: /hr/inventory/suppliers');
-                exit;
+                redirect('/hr/inventory/suppliers');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to save the supplier right now.';
             }
@@ -82,7 +81,7 @@ if (!$errors) {
     }
 }
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -166,4 +165,4 @@ require __DIR__ . '/../../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/app_footer.php'; ?>

@@ -110,8 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             ]);
 
             flash_set('success', 'Availability settings updated.');
-            header('Location: /owner/shop/availability');
-            exit;
+                redirect('/owner/shop/availability');
         } catch (PDOException $exception) {
             $errors[] = 'Unable to save availability right now.';
         }
@@ -125,7 +124,7 @@ $availability = $availability ?: [
     'accepting_rush' => 0,
 ];
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -189,4 +188,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

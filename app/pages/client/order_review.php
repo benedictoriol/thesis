@@ -187,15 +187,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
             ]);
 
             flash_set('success', 'Review submitted successfully.');
-            header('Location: /order/' . $orderId . '/review');
-            exit;
+            redirect_to('' . );
         } catch (PDOException $exception) {
             $errors[] = 'Unable to submit review right now.';
         }
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Submit Review</h1>
 
@@ -262,4 +261,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

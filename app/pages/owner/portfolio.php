@@ -76,8 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
                 );
                 $stmt->execute($params);
                 flash_set('success', 'Portfolio visibility updated.');
-                header('Location: /owner/portfolio');
-                exit;
+                redirect('/owner/portfolio');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to update portfolio visibility right now.';
             }
@@ -135,7 +134,7 @@ if (!$errors) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -236,4 +235,4 @@ require __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

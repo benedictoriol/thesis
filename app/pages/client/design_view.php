@@ -39,7 +39,7 @@ if ($designId <= 0) {
 }
 
 $pageTitle = 'Design Details';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Design Details</h1>
 
@@ -110,5 +110,5 @@ require __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

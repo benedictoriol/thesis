@@ -165,8 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
             ));
 
             flash_set('success', 'Application details saved.');
-            header('Location: /owner/verification');
-            exit;
+                redirect('/owner/verification');
         }
 
         $verification = array_merge($verification, $application);
@@ -236,8 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
             ]);
 
             flash_set('success', 'Your verification package has been submitted for review.');
-            header('Location: /owner/verification/status');
-            exit;
+            redirect('/owner/verification');
         }
     }
 }
@@ -267,7 +265,7 @@ $governmentIdTypes = [
     'other' => 'Other government ID',
 ];
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <h1 class="h4 mb-2">Shop Verification</h1>
@@ -473,4 +471,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

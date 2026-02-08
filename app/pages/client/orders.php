@@ -90,7 +90,7 @@ try {
     $errors[] = 'Unable to load your orders right now.';
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">My Orders</h1>
 <p class="text-muted">Monitor the status of your orders and past requests.</p>
@@ -154,5 +154,5 @@ require __DIR__ . '/../../includes/header.php';
     <?php endforeach; ?>
 </div>
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

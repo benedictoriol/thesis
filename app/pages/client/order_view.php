@@ -142,8 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
                 $errors[] = 'Unable to update order status right now.';
             } else {
                 flash_set('success', 'Order updated successfully.');
-                header('Location: /client/orders/' . $orderId);
-                exit;
+                redirect_to('' . );
             }
         }
     }
@@ -283,7 +282,7 @@ if ($order) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -496,5 +495,5 @@ require __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

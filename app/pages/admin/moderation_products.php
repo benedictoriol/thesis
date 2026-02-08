@@ -43,8 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], $actionType . '_product', 'product', $entityId, ['reason' => $reason]);
             flash_set('success', 'Moderation action recorded.');
-            header('Location: /admin/moderation/products');
-            exit;
+            redirect('/admin/moderation/products');
         }
     }
 }

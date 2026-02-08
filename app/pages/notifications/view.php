@@ -17,16 +17,14 @@ if ($notificationId <= 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_verify()) {
         flash_set('error', 'Invalid request token.');
-        header('Location: /notifications/' . $notificationId);
-        exit;
+        redirect_to('' . );
     }
 
     $action = $_POST['action'] ?? '';
     if ($action === 'mark_read') {
         mark_notification_read((int) $currentUser['id'], $notificationId);
         flash_set('success', 'Notification marked as read.');
-        header('Location: /notifications/' . $notificationId);
-        exit;
+        redirect_to('' . );
     }
 }
 

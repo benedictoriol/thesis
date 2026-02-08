@@ -127,7 +127,7 @@ if ($payments && $reviewsColumns) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -208,5 +208,5 @@ require __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

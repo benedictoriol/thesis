@@ -157,8 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'id' => $post['id'],
                     ]);
                     flash_set('success', 'Post updated successfully.');
-                    header('Location: /client/posts/' . $post['id']);
-                    exit;
+                    redirect_to('' . );
                 } catch (PDOException $exception) {
                     $errors[] = 'Unable to update the post.';
                 }
@@ -174,8 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'id' => $post['id'],
                     ]);
                     flash_set('success', 'Post closed successfully.');
-                    header('Location: /client/posts/' . $post['id']);
-                    exit;
+                    redirect_to('' . );
                 } catch (PDOException $exception) {
                     $errors[] = 'Unable to close the post.';
                 }
@@ -218,8 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'created_at' => gmdate('Y-m-d H:i:s'),
                     ]);
                     flash_set('success', 'Offer sent to the client.');
-                    header('Location: /client/posts/' . $post['id']);
-                    exit;
+                    redirect_to('' . );
                 } catch (PDOException $exception) {
                     $errors[] = 'Unable to send offer right now.';
                 }
@@ -288,8 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     db()->commit();
                     flash_set('success', 'Offer accepted. An order has been created.');
-                    header('Location: /client/posts/' . $post['id']);
-                    exit;
+                    redirect_to('' . );
                 } catch (Throwable $exception) {
                     db()->rollBack();
                     $errors[] = 'Unable to accept the offer right now.';
@@ -326,8 +322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     flash_set('success', 'Offer rejected.');
-                    header('Location: /client/posts/' . $post['id']);
-                    exit;
+                    redirect_to('' . );
                 } catch (Throwable $exception) {
                     $errors[] = 'Unable to reject the offer right now.';
                 }
@@ -402,7 +397,7 @@ $badgeClass = match ($status) {
     default => 'bg-light text-dark',
 };
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex justify-content-between align-items-start mb-3">
     <div>
@@ -660,4 +655,4 @@ require __DIR__ . '/../../includes/header.php';
 
 <a class="btn btn-outline-secondary" href="/client/posts">Back to posts</a>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

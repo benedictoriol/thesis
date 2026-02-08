@@ -90,8 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 ]);
 
                 flash_set('success', 'Shop profile updated.');
-                header('Location: /owner/shop/profile');
-                exit;
+                redirect('/owner/shop/profile');
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to save the shop profile right now.';
             }
@@ -101,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $shop = load_shop_for_user($currentUser);
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -178,4 +177,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

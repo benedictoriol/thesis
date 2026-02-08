@@ -263,8 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Notifications are best-effort.
             }
             flash_set('success', 'Post created successfully.');
-            header('Location: /client/posts');
-            exit;
+            redirect('/client/posts');
         } catch (PDOException $exception) {
             db()->rollBack();
             $errors[] = 'Unable to save your post right now.';
@@ -272,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Create a client post</h1>
 <p class="text-muted">Share your order needs so HR staff can send offers.</p>
@@ -391,4 +390,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 </form>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

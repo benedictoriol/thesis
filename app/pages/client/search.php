@@ -414,7 +414,7 @@ $totalPages = max(1, (int) ceil($totalResults / $perPage));
 $hasPrev = $page > 1;
 $hasNext = $page < $totalPages;
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-2">Search</h1>
 <p class="text-muted">Find products, shops, or posts with filters tailored to your needs.</p>
@@ -585,4 +585,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 </nav>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

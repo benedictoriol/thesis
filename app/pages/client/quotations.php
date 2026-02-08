@@ -170,7 +170,7 @@ if (table_exists('quote_requests')) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">My Quotations</h1>
 <p class="text-muted">Review pricing offers submitted by shops.</p>
@@ -252,5 +252,5 @@ require __DIR__ . '/../../includes/header.php';
     <?php endforeach; ?>
 </div>
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

@@ -135,8 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                         }
 
                         flash_set('success', 'Payment review saved.');
-                        header('Location: /hr/payments/' . $paymentId);
-                        exit;
+                        redirect_to('' . );
                     }
                 } catch (Throwable $exception) {
                     $errors[] = 'Unable to save the review right now.';
@@ -179,8 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                     }
 
                     flash_set('success', 'COD marked as received.');
-                    header('Location: /hr/payments/' . $paymentId);
-                    exit;
+                    redirect_to('' . );
                 }
             } catch (Throwable $exception) {
                 $errors[] = 'Unable to update COD status right now.';
@@ -260,7 +258,7 @@ if ($payment && $reviewsColumns) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -392,5 +390,5 @@ require __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

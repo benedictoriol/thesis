@@ -27,8 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(['weight' => $weightValue, 'id' => $weightId]);
                 audit_log((int) $currentUser['id'], 'update_dss_weight', 'dss_global_weights', $weightId, ['weight' => $weightValue]);
                 flash_set('success', 'DSS weight updated.');
-                header('Location: /admin/dss/config');
-                exit;
+                redirect('/admin/dss/config');
             }
         }
 
@@ -43,8 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(['criterion' => $criterion, 'weight' => $weightValue]);
                 audit_log((int) $currentUser['id'], 'add_dss_weight', 'dss_global_weights', (int) db()->lastInsertId(), ['criterion' => $criterion]);
                 flash_set('success', 'DSS weight added.');
-                header('Location: /admin/dss/config');
-                exit;
+                redirect('/admin/dss/config');
             }
         }
 
@@ -62,8 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(['key' => $key, 'value' => $value]);
                 audit_log((int) $currentUser['id'], 'update_system_setting', 'system_settings', null, ['key' => $key]);
                 flash_set('success', 'System setting saved.');
-                header('Location: /admin/dss/config');
-                exit;
+                redirect('/admin/dss/config');
             }
         }
         
@@ -85,8 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'dss_threshold_max_score' => $maxScore,
                 ]);
                 flash_set('success', 'DSS thresholds updated.');
-                header('Location: /admin/dss/config');
-                exit;
+                redirect('/admin/dss/config');
             }
         }
 
@@ -103,8 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jobId = (int) db()->lastInsertId();
             audit_log((int) $currentUser['id'], 'queue_dss_recalculation', 'dss_recalculation_jobs', $jobId, []);
             flash_set('success', 'DSS recalculation queued.');
-            header('Location: /admin/dss/config');
-            exit;
+            redirect('/admin/dss/config');
         }
     }
 }

@@ -43,8 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], $actionType . '_portfolio', 'portfolio', $entityId, ['reason' => $reason]);
             flash_set('success', 'Moderation action recorded.');
-            header('Location: /admin/moderation/portfolio');
-            exit;
+            redirect('/admin/moderation/portfolio');
         }
     }
 }

@@ -46,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $messageText,
                 $attachment['path']
             );
-            header('Location: /messages/' . $conversationId);
-            exit;
+            redirect_to('' . );
         }
     }
 }
@@ -63,7 +62,7 @@ $counterparty = $user['role'] === 'client'
     : ($client['fullname'] ?? 'Client');
 
 $pageTitle = 'Conversation';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex justify-content-between align-items-start mb-3">
     <div>
@@ -128,4 +127,4 @@ require __DIR__ . '/../../includes/header.php';
     <button class="btn btn-primary" type="submit">Send message</button>
 </form>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

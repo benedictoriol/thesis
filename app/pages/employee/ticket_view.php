@@ -175,8 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ticket && !$errors) {
                     apply_ticket_status_updates((int) $ticket['order_id'], $status, (int) $currentUser['id']);
 
                     flash_set('success', 'Ticket updated successfully.');
-                    header('Location: /employee/tickets/' . $ticketId);
-                    exit;
+                    redirect_to('' . );
                 } catch (PDOException $exception) {
                     if (isset($pdo) && $pdo->inTransaction()) {
                         $pdo->rollBack();
@@ -203,7 +202,7 @@ if ($ticket && table_exists('job_updates')) {
     }
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -328,4 +327,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

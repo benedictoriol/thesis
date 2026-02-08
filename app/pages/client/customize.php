@@ -172,8 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                 ]);
             }
 
-            header('Location: /client/designs/' . $designId);
-            exit;
+            redirect_to('' . );
         }
     }
 }
@@ -184,7 +183,7 @@ if (!in_array($itemType, $itemTypes, true)) {
 }
 
 $pageTitle = 'Design Builder';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Design Builder</h1>
 <p class="text-muted small">Create a custom <?= htmlspecialchars($itemTypeLabels[$itemType] ?? $itemType, ENT_QUOTES, 'UTF-8') ?> design by adding images or text layers.</p>
@@ -588,5 +587,5 @@ form.addEventListener('submit', async (event) => {
 </script>
 
 <?php
-require __DIR__ . '/../../includes/footer.php';
+require __DIR__ . '/../../includes/app_footer.php';
 ?>

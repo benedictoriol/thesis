@@ -51,7 +51,7 @@ $statusStyles = [
 ];
 $statusClass = $statusStyles[$verification['status']] ?? 'secondary';
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <h1 class="h4 mb-2">Verification Status</h1>
@@ -121,4 +121,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

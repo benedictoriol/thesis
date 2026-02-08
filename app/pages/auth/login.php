@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/url.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 
@@ -18,8 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         if ($result['ok']) {
             flash_set('success', 'Logged in successfully.');
-            header('Location: /auth/login');
-            exit;
+            $role = $result['user']['role'] ?? 'client';
+            $dest = match ($role) {
+                'sys_admin' => '/admin/dashboard',
+                'owner' => '/owner/orders',
+                'hr' => '/hr/inventory',
+                'employee' => '/employee/tickets',
+                default => '/client/home',
+            };
+            redirect($dest);
         }
         $errors[] = $result['error'];
     }
@@ -50,11 +58,11 @@ require __DIR__ . '/../../includes/header.php';
     <button class="btn btn-primary w-100" type="submit">Login</button>
 </form>
 <div class="d-flex justify-content-between mt-3">
-    <a href="/auth/register_client">Register client</a>
-    <a href="/auth/register_owner">Register owner</a>
+    <a href="<?= url('/auth/register_client') ?>">Register client</a>
+    <a href="<?= url('/auth/register_owner') ?>">Register owner</a>
 </div>
 <div class="d-flex justify-content-between mt-2">
-    <a href="/auth/forgot_password">Forgot password?</a>
-    <a href="/auth/logout">Logout</a>
+    <a href="<?= url('/auth/forgot_password') ?>">Forgot password?</a>
+    <a href="<?= url('/auth/logout') ?>">Logout</a>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

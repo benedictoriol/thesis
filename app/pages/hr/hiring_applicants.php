@@ -140,8 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                     $stmt = db()->prepare($sql);
                     $stmt->execute($updateParams);
                     flash_set('success', 'Applicant updated successfully.');
-                    header('Location: /hr/hiring/' . $postId . '/applicants');
-                    exit;
+                    redirect_to('' . );
                 }
             } catch (PDOException $exception) {
                 $errors[] = 'Unable to update applicant right now.';
@@ -217,7 +216,7 @@ $statusBadgeClasses = [
     'rejected' => 'bg-danger',
 ];
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
@@ -357,4 +356,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

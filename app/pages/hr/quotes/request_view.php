@@ -158,8 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
             try {
                 create_quote($request, $currentUser, $price, $turnaroundDays, $notes, $validityDays);
                 $successMessage = 'Quote sent successfully.';
-                header('Location: /hr/quotes/requests/' . $requestId);
-                exit;
+                redirect_to('' . );
             } catch (Throwable $exception) {
                 $errors[] = 'Unable to send the quote right now.';
             }
@@ -167,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
     }
 }
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
     <div>
@@ -379,5 +378,5 @@ require __DIR__ . '/../../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../../includes/footer.php';
+require __DIR__ . '/../../../includes/app_footer.php';
 ?>

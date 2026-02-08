@@ -235,7 +235,7 @@ function build_query(array $params): string
     return http_build_query(array_filter($params, static fn($value) => $value !== null && $value !== ''));
 }
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 <h1 class="h4 mb-3">Marketplace</h1>
 <p class="text-muted">Browse curated products from active shops.</p>
@@ -368,4 +368,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 </nav>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

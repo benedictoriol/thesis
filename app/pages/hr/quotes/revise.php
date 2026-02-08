@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../../core/guard.php';
+require_once __DIR__ . '/../../../core/url.php';
 require_once __DIR__ . '/../../../core/db.php';
 require_once __DIR__ . '/../../../core/audit.php';
 require_once __DIR__ . '/../../../includes/csrf.php';
@@ -163,8 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $quote) {
                 
                 db()->commit();
                 $successMessage = 'Quote revised successfully.';
-                header('Location: /hr/quotes/requests/' . (int) $quote['request_id']);
-                exit;
+                redirect_to('/hr/quotes/requests/' . (int) $quote['request_id']);
             } catch (Throwable $exception) {
                 db()->rollBack();
                 $errors[] = 'Unable to revise the quote right now.';
@@ -181,7 +181,7 @@ if ($quote && !empty($quote['valid_until'])) {
     }
 }
 
-require __DIR__ . '/../../../includes/header.php';
+require __DIR__ . '/../../../includes/app_header.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
     <div>
@@ -238,5 +238,5 @@ require __DIR__ . '/../../../includes/header.php';
 <?php endif; ?>
 
 <?php
-require __DIR__ . '/../../../includes/footer.php';
+require __DIR__ . '/../../../includes/app_footer.php';
 ?>

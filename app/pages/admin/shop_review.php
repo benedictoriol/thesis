@@ -98,8 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], 'approve_verification', 'shop_verification', $shopId, ['note' => $note]);
             flash_set('success', 'Shop verification approved and activated.');
-            header('Location: /admin/shops/' . $shopId . '/review');
-            exit;
+            redirect_to('' . );
         }
 
         if ($action === 'reject_verification') {
@@ -125,8 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], 'reject_verification', 'shop_verification', $shopId, ['note' => $note]);
             flash_set('success', 'Shop verification rejected.');
-            header('Location: /admin/shops/' . $shopId . '/review');
-            exit;
+            redirect_to('' . );
         }
 
         if ($action === 'activate_shop') {
@@ -138,8 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 audit_log((int) $currentUser['id'], 'activate_shop', 'shops', $shopId, []);
                 flash_set('success', 'Shop activated.');
-                header('Location: /admin/shops/' . $shopId . '/review');
-                exit;
+                redirect_to('' . );
             }
         }
 
@@ -149,8 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log((int) $currentUser['id'], 'suspend_shop', 'shops', $shopId, []);
             flash_set('success', 'Shop suspended.');
-            header('Location: /admin/shops/' . $shopId . '/review');
-            exit;
+            redirect_to('' . );
         }
     }
 }

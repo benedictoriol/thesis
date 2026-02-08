@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Thesis Portal';
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/../includes/app_header.php';
 ?>
 <div class="landing-hero text-center">
     <span class="badge rounded-pill bg-primary-subtle text-primary mb-3">Thesis Portal</span>
@@ -49,4 +49,4 @@ require __DIR__ . '/../includes/header.php';
     <p class="text-muted mb-2">Already have an account?</p>
     <a class="btn btn-link fw-semibold" href="/auth/login">Sign in to continue →</a>
 </div>
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/app_footer.php'; ?>

@@ -116,8 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                     $stmt->execute($insertValues);
 
                     flash_set('success', 'HR account created and linked to your shop.');
-                    header('Location: /owner/staff');
-                    exit;
+                    redirect('/owner/staff');
                 } catch (PDOException $exception) {
                     $errors[] = 'Unable to link HR account to the shop.';
                 }
@@ -136,7 +135,7 @@ $staffNavItems = [
     ['label' => 'Approved employees', 'path' => '/owner/staff/approved-employees'],
 ];
 
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../includes/app_header.php';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
@@ -220,4 +219,4 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../includes/app_footer.php'; ?>

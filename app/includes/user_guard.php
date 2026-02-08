@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../core/auth.php';
+require_once __DIR__ . '/../core/url.php';
 
 function require_user(): array
 {
     $user = current_user();
     if (!$user) {
-        header('Location: /auth/login');
-        exit;
+        redirect('/auth/login');
     }
 
     return $user;
