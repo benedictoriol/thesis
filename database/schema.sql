@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS notifications (
         'order_rejected',
         'order_status_changed',
         'payment_proof_uploaded',
+        'payment_reminder',
         'payment_verified',
         'payment_rejected',
         'low_stock',
@@ -660,6 +661,20 @@ CREATE TABLE IF NOT EXISTS payment_reviews (
     FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_payment_reviews_payment (payment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS earnings_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    payment_id INT NOT NULL,
+    order_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    method ENUM('cod', 'pickup_cash', 'bank_transfer') NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_earnings_payment (payment_id),
+    INDEX idx_earnings_order (order_id),
+    INDEX idx_earnings_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS timesheets (

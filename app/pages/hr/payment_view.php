@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../core/audit.php';
+require_once __DIR__ . '/../../handlers/payment_handler.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 
@@ -112,23 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                         $errors[] = 'Only payments pending proof can be reviewed.';
                     } else {
                         $finalReason = $reason !== '' ? $reason : 'Verified payment proof.';
-                        $reviewStmt = db()->prepare(
-                            'INSERT INTO payment_reviews (payment_id, reviewed_by_user_id, decision, reason, reviewed_at)
-                             VALUES (:payment_id, :reviewed_by_user_id, :decision, :reason, :reviewed_at)'
-                        );
-                        $reviewStmt->execute([
-                            'payment_id' => $paymentId,
-                            'reviewed_by_user_id' => $currentUser['id'],
-                            'decision' => $decision,
-                            'reason' => $finalReason,
-                            'reviewed_at' => gmdate('Y-m-d H:i:s'),
-                        ]);
-
-                        $updateStmt = db()->prepare('UPDATE payments SET status = :status WHERE id = :id');
-                        $updateStmt->execute([
-                            'status' => $decision,
-                            'id' => $paymentId,
-                        ]);
+                        $finalized = finalize_payment_review($paymentId, (int) $currentUser['id'], $decision, $finalReason);
+                        if (!$finalized) {
+                            throw new RuntimeException('Unable to finalize payment.');
+                        }
 
                         $auditContext = load_payment_audit_context($paymentId, $shopIdColumn);
                         if ($auditContext && $auditContext['shop_id']) {
@@ -150,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                         header('Location: /hr/payments/' . $paymentId);
                         exit;
                     }
-                } catch (PDOException $exception) {
+                } catch (Throwable $exception) {
                     $errors[] = 'Unable to save the review right now.';
                 }
             }
@@ -169,23 +157,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                 } elseif (in_array(strtolower((string) $paymentRow['status']), ['verified', 'rejected'], true)) {
                     $errors[] = 'This payment has already been finalized.';
                 } else {
-                    $reviewStmt = db()->prepare(
-                        'INSERT INTO payment_reviews (payment_id, reviewed_by_user_id, decision, reason, reviewed_at)
-                         VALUES (:payment_id, :reviewed_by_user_id, :decision, :reason, :reviewed_at)'
-                    );
-                    $reviewStmt->execute([
-                        'payment_id' => $paymentId,
-                        'reviewed_by_user_id' => $currentUser['id'],
-                        'decision' => 'verified',
-                        'reason' => 'COD received.',
-                        'reviewed_at' => gmdate('Y-m-d H:i:s'),
-                    ]);
-
-                    $updateStmt = db()->prepare('UPDATE payments SET status = :status WHERE id = :id');
-                    $updateStmt->execute([
-                        'status' => 'verified',
-                        'id' => $paymentId,
-                    ]);
+                    $finalized = mark_cod_received($paymentId, (int) $currentUser['id'], 'COD received.');
+                    if (!$finalized) {
+                        throw new RuntimeException('Unable to finalize COD payment.');
+                    }
 
                     $auditContext = load_payment_audit_context($paymentId, $shopIdColumn);
                     if ($auditContext && $auditContext['shop_id']) {
@@ -207,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
                     header('Location: /hr/payments/' . $paymentId);
                     exit;
                 }
-            } catch (PDOException $exception) {
+            } catch (Throwable $exception) {
                 $errors[] = 'Unable to update COD status right now.';
             }
         }

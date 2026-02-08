@@ -14,6 +14,7 @@ const NOTIFICATION_TYPES = [
     'order_rejected',
     'order_status_changed',
     'payment_proof_uploaded',
+    'payment_reminder',
     'payment_verified',
     'payment_rejected',
     'low_stock',
