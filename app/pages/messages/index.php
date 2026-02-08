@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/../../includes/shop_availability.php';
 require_once __DIR__ . '/../../handlers/message_handler.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
 
@@ -109,6 +110,12 @@ if ($user && $user['role'] === 'client' && ($_GET['action'] ?? '') === 'start') 
 
     if ($shopId > 0 && $contextType !== '') {
         try {
+            if (in_array($contextType, ['quote_request', 'post'], true) && !shop_accepts($shopId, 'accepting_quotes')) {
+                throw new InvalidArgumentException('This shop is not accepting quote requests right now.');
+            }
+            if ($contextType === 'order' && !shop_accepts($shopId, 'accepting_orders')) {
+                throw new InvalidArgumentException('This shop is not accepting new orders right now.');
+            }
             $conversation = get_or_create_conversation($shopId, (int) $user['id'], $contextType, $contextId);
             if ($contextType === 'quote_request') {
                 ensure_quote_request($shopId, (int) $user['id'], $contextId);

@@ -435,7 +435,7 @@ require __DIR__ . '/../../includes/header.php';
                                 'accepting_orders' => 'Accepting orders',
                                 'accepting_custom' => 'Custom requests',
                                 'accepting_quotes' => 'Quotes',
-                                'rush_available' => 'Rush service',
+                                'accepting_rush' => 'Rush service',
                             ];
                             ?>
                             <div class="d-flex flex-wrap gap-2 mb-3">

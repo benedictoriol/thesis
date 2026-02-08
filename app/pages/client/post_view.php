@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/shop_availability.php';
 require_once __DIR__ . '/../../handlers/post_handler.php';
 require_once __DIR__ . '/../../handlers/order_handler.php';
 
@@ -245,6 +246,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (!$offer || $offer['status'] !== 'sent') {
                         throw new RuntimeException('Offer is no longer available.');
+                    }
+                    if (!shop_accepts((int) $offer['shop_id'], 'accepting_orders')) {
+                        throw new RuntimeException('This shop is not accepting new orders right now.');
                     }
 
                     $stmt = db()->prepare('UPDATE post_offers SET status = :status WHERE id = :id');

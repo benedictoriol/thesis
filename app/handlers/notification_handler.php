@@ -58,16 +58,8 @@ function notify_shops_about_post(int $postId): void
 
     if ($availabilityColumns) {
         $joins[] = 'LEFT JOIN shop_availability sa ON sa.shop_id = s.id';
-        $availabilityFields = array_values(array_intersect(
-            $availabilityColumns,
-            ['accepting_orders', 'accepting_quotes', 'accepting_custom', 'accepting_rush']
-        ));
-        if ($availabilityFields) {
-            $availabilityConditions = array_map(
-                static fn(string $column): string => sprintf('COALESCE(sa.%s, 0) = 1', $column),
-                $availabilityFields
-            );
-            $conditions[] = '(' . implode(' OR ', $availabilityConditions) . ')';
+        if (in_array('accepting_quotes', $availabilityColumns, true)) {
+            $conditions[] = 'COALESCE(sa.accepting_quotes, 1) = 1';
         }
     }
 

@@ -59,6 +59,7 @@ $shopColumns = get_table_columns(db(), 'shops');
 $metricsColumns = get_table_columns(db(), 'shop_metrics');
 $availabilityColumns = get_table_columns(db(), 'shop_availability');
 $shopTownColumn = find_column($shopColumns, ['address_text', 'town', 'city', 'location']);
+$acceptingQuotesColumn = find_column($availabilityColumns, ['accepting_quotes']);
 
 $townMatch = trim($_POST['town_text'] ?? '');
 if ($townMatch === '') {
@@ -109,7 +110,11 @@ if ($scoreSql !== '0') {
                 $scoreSql AS recommended_score
             FROM shops s
             $shopJoinSql
-            WHERE s.status = 'active'
+            WHERE s.status = 'active'";
+        if ($acceptingQuotesColumn) {
+            $shopSql .= " AND COALESCE(sa.$acceptingQuotesColumn, 1) = 1";
+        }
+        $shopSql .= "
             ORDER BY recommended_score DESC, s.id DESC
             LIMIT 6";
         $stmt = db()->prepare($shopSql);

@@ -155,6 +155,27 @@ require __DIR__ . '/../../includes/header.php';
             </form>
         </div>
     </div>
+    
+    <div class="row g-3 mt-3">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h6">Projects & pricing</h2>
+                    <p class="text-muted mb-3">Post services with descriptions and prices for clients browsing your profile.</p>
+                    <a class="btn btn-outline-primary btn-sm" href="/owner/catalog">Manage service catalog</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h6">Finished project feed</h2>
+                    <p class="text-muted mb-3">Share completed projects to showcase them on your public shop profile.</p>
+                    <a class="btn btn-outline-primary btn-sm" href="/owner/portfolio">Manage portfolio feed</a>
+                </div>
+            </div>
+        </div>
+    </div>
 <?php endif; ?>
 
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
+require_once __DIR__ . '/../../includes/shop_availability.php';
 require_once __DIR__ . '/../../handlers/order_handler.php';
 
 require_role(['client']);
@@ -50,6 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($action === 'accept_quote') {
+                    if (!shop_accepts((int) $quote['shop_id'], 'accepting_orders')) {
+                        throw new RuntimeException('This shop is not accepting new orders right now.');
+                    }
                     $update = db()->prepare('UPDATE quotes SET status = :status WHERE id = :id');
                     $update->execute([
                         'status' => 'accepted',
