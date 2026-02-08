@@ -103,6 +103,12 @@ if (!array_key_exists($path, $routes)) {
         require __DIR__ . '/../app/pages/client/shop_view.php';
         exit;
     }
+    if (preg_match('#^/shop/(\\d+)/hiring/(\\d+)/apply$#', $path, $matches)) {
+        $_GET['shop_id'] = $matches[1];
+        $_GET['post_id'] = $matches[2];
+        require __DIR__ . '/../app/pages/client/hiring_apply.php';
+        exit;
+    }
     if (preg_match('#^/shop/(\\d+)/reviews$#', $path, $matches)) {
         $_GET['id'] = $matches[1];
         require __DIR__ . '/../app/pages/owner/shop_reviews.php';

@@ -354,6 +354,7 @@ CREATE TABLE IF NOT EXISTS applications (
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(50) NULL,
     position VARCHAR(255) NULL,
+    resume_path VARCHAR(255) NULL,
     status ENUM('pending', 'interviewed', 'approved', 'rejected', 'converted') NOT NULL DEFAULT 'pending',
     interview_notes TEXT NULL,
     applied_at DATETIME NOT NULL,

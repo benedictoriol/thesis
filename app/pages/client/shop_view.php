@@ -106,6 +106,7 @@ $reviewSummary = [
 ];
 $recentReviews = [];
 $hiringPosts = [];
+$hiringColumns = [];
 
 if ($shopId <= 0) {
     $errors[] = 'Invalid shop selection.';
@@ -290,33 +291,39 @@ if ($shop) {
         }
     }
 
-    $hiringColumns = get_table_columns(db(), 'shop_hiring');
+    $hiringColumns = get_table_columns(db(), 'hiring_posts');
     if ($hiringColumns) {
-        $titleColumn = find_column($hiringColumns, ['title', 'position', 'role_name']);
-        $descriptionColumn = find_column($hiringColumns, ['description', 'details']);
-        $statusColumn = find_column($hiringColumns, ['status']);
-        $createdColumn = find_column($hiringColumns, ['created_at', 'posted_at']);
+        $hasLocation = in_array('location_text', $hiringColumns, true);
+        $hasEmploymentType = in_array('employment_type', $hiringColumns, true);
+        $hasStatus = in_array('status', $hiringColumns, true);
+        $hasCreatedAt = in_array('created_at', $hiringColumns, true);
+        $hasDescription = in_array('description', $hiringColumns, true);
 
         try {
-            $select = ['id', 'shop_id'];
-            if ($titleColumn) {
-                $select[] = "$titleColumn AS title";
+            $select = ['id', 'shop_id', 'title'];
+            if ($hasDescription) {
+                $select[] = 'description';
             }
-            if ($descriptionColumn) {
-                $select[] = "$descriptionColumn AS description";
+            if ($hasLocation) {
+                $select[] = 'location_text';
             }
-            if ($statusColumn) {
-                $select[] = "$statusColumn AS status";
+            if ($hasEmploymentType) {
+                $select[] = 'employment_type';
             }
-            if ($createdColumn) {
-                $select[] = "$createdColumn AS created_at";
+            if ($hasStatus) {
+                $select[] = 'status';
             }
-            $sql = "SELECT " . implode(', ', $select) . " FROM shop_hiring WHERE shop_id = :shop_id";
-            if ($statusColumn) {
-                $sql .= " AND $statusColumn = 'open'";
+            if ($hasCreatedAt) {
+                $select[] = 'created_at';
             }
-            if ($createdColumn) {
-                $sql .= " ORDER BY $createdColumn DESC";
+            $sql = "SELECT " . implode(', ', $select) . " FROM hiring_posts WHERE shop_id = :shop_id";
+            if ($hasStatus) {
+                $sql .= " AND status = 'open'";
+            }
+            if ($hasCreatedAt) {
+                $sql .= ' ORDER BY created_at DESC';
+            } else {
+                $sql .= ' ORDER BY id DESC';
             }
             $sql .= ' LIMIT 5';
 
@@ -390,7 +397,7 @@ require __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 
-    <?php if ($hiringPosts): ?>
+    <?php if ($hiringColumns): ?>
         <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
@@ -624,29 +631,53 @@ require __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
         </div>
-        <?php if ($hiringPosts): ?>
+        <?php if ($hiringColumns): ?>
             <div class="tab-pane fade" id="hiring" role="tabpanel">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h3 class="h6">Hiring</h3>
-                        <div class="list-group">
-                            <?php foreach ($hiringPosts as $post): ?>
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="fw-semibold"><?= htmlspecialchars($post['title'] ?? 'Open role', ENT_QUOTES, 'UTF-8') ?></div>
-                                        <?php if (!empty($post['status'])): ?>
-                                            <span class="badge bg-light text-dark border"><?= htmlspecialchars($post['status'], ENT_QUOTES, 'UTF-8') ?></span>
-                                        <?php endif; ?>
+                        <?php if ($hiringPosts): ?>
+                            <div class="list-group">
+                                <?php foreach ($hiringPosts as $post): ?>
+                                    <?php
+                                    $postId = (int) ($post['id'] ?? 0);
+                                    $applyLink = '/shop/' . $shopId . '/hiring/' . $postId . '/apply';
+                                    ?>
+                                    <div class="list-group-item">
+                                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                            <div>
+                                                <div class="fw-semibold"><?= htmlspecialchars($post['title'] ?? 'Open role', ENT_QUOTES, 'UTF-8') ?></div>
+                                                <?php if (!empty($post['created_at'])): ?>
+                                                    <div class="text-muted small mb-2">Posted <?= htmlspecialchars($post['created_at'], ENT_QUOTES, 'UTF-8') ?></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($post['location_text']) || !empty($post['employment_type'])): ?>
+                                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                                        <?php if (!empty($post['location_text'])): ?>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <?= htmlspecialchars($post['location_text'], ENT_QUOTES, 'UTF-8') ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($post['employment_type'])): ?>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <?= htmlspecialchars(ucwords(str_replace('_', ' ', $post['employment_type'])), ENT_QUOTES, 'UTF-8') ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($post['description'])): ?>
+                                                    <p class="text-muted mb-0"><?= htmlspecialchars($post['description'], ENT_QUOTES, 'UTF-8') ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="text-md-end">
+                                                <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($applyLink, ENT_QUOTES, 'UTF-8') ?>">Apply</a>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <?php if (!empty($post['created_at'])): ?>
-                                        <div class="text-muted small mb-2">Posted <?= htmlspecialchars($post['created_at'], ENT_QUOTES, 'UTF-8') ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($post['description'])): ?>
-                                        <p class="text-muted mb-0"><?= htmlspecialchars($post['description'], ENT_QUOTES, 'UTF-8') ?></p>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
+                                    <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">No open positions are available right now.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

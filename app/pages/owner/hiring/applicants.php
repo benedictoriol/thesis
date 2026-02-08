@@ -28,6 +28,7 @@ $hasApplicantPhone = in_array('phone', $applicationColumns, true);
 $hasApplicantAppliedAt = in_array('applied_at', $applicationColumns, true);
 $hasApplicantApprovedAt = in_array('approved_at', $applicationColumns, true);
 $hasApplicantUserId = in_array('user_id', $applicationColumns, true);
+$hasApplicantResume = in_array('resume_path', $applicationColumns, true);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'convert_to_employee' && !$errors) {
     if (!csrf_verify()) {
@@ -160,6 +161,9 @@ if ($shop && !$errors && $applicationsTableExists) {
     if ($hasApplicantApprovedAt) {
         $selectParts[] = 'approved_at';
     }
+    if ($hasApplicantResume) {
+        $selectParts[] = 'resume_path';
+    }
 
     $filters = ['shop_id = :shop_id'];
     if ($hasApplicantStatus) {
@@ -232,6 +236,7 @@ require __DIR__ . '/../../../includes/header.php';
                         <?php if ($hasApplicantPosition): ?><th>Position</th><?php endif; ?>
                         <?php if ($hasApplicantPhone): ?><th>Phone</th><?php endif; ?>
                         <?php if ($hasApplicantApprovedAt): ?><th>Approved</th><?php elseif ($hasApplicantAppliedAt): ?><th>Applied</th><?php endif; ?>
+                        <?php if ($hasApplicantResume): ?><th>Resume</th><?php endif; ?>
                         <th></th>
                     </tr>
                 </thead>
@@ -253,6 +258,17 @@ require __DIR__ . '/../../../includes/header.php';
                         <?php elseif ($hasApplicantAppliedAt): ?>
                             <td><?= htmlspecialchars($application['applied_at'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <?php endif; ?>
+                        <?php if ($hasApplicantResume): ?>
+                            <td>
+                                <?php if (!empty($application['resume_path'])): ?>
+                                    <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($application['resume_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">
+                                        View resume
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
                         <td class="text-end">
                             <form method="post">
                                 <?= csrf_field() ?>
@@ -265,7 +281,7 @@ require __DIR__ . '/../../../includes/header.php';
                 <?php endforeach; ?>
                 <?php if (!$applications): ?>
                     <tr>
-                        <td colspan="<?= 2 + ($hasApplicantPosition ? 1 : 0) + ($hasApplicantPhone ? 1 : 0) + ($hasApplicantApprovedAt || $hasApplicantAppliedAt ? 1 : 0) ?>" class="text-muted">
+                        <td colspan="<?= 2 + ($hasApplicantPosition ? 1 : 0) + ($hasApplicantPhone ? 1 : 0) + ($hasApplicantApprovedAt || $hasApplicantAppliedAt ? 1 : 0) + ($hasApplicantResume ? 1 : 0) ?>" class="text-muted">
                             No approved applicants yet.
                         </td>
                     </tr>

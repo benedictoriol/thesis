@@ -30,6 +30,7 @@ $hasApplicantAppliedAt = in_array('applied_at', $applicationColumns, true);
 $hasApplicantInterviewNotes = in_array('interview_notes', $applicationColumns, true);
 $hasApplicantInterviewedAt = in_array('interviewed_at', $applicationColumns, true);
 $hasApplicantApprovedAt = in_array('approved_at', $applicationColumns, true);
+$hasApplicantResume = in_array('resume_path', $applicationColumns, true);
 $hasApplicantPostId = in_array('post_id', $applicationColumns, true);
 
 $post = null;
@@ -167,6 +168,9 @@ if ($shop && $post && $applicationsTableExists) {
     if ($hasApplicantAppliedAt) {
         $selectParts[] = 'applied_at';
     }
+    if ($hasApplicantResume) {
+        $selectParts[] = 'resume_path';
+    }
     if ($hasApplicantInterviewNotes) {
         $selectParts[] = 'interview_notes';
     }
@@ -273,6 +277,7 @@ require __DIR__ . '/../../includes/header.php';
                         <?php if ($hasApplicantPhone): ?><th>Phone</th><?php endif; ?>
                         <?php if ($hasApplicantAppliedAt): ?><th>Applied</th><?php endif; ?>
                         <?php if ($hasApplicantStatus): ?><th>Status</th><?php endif; ?>
+                        <?php if ($hasApplicantResume): ?><th>Resume</th><?php endif; ?>
                         <?php if ($hasApplicantInterviewNotes): ?><th>Interview notes</th><?php endif; ?>
                         <th></th>
                     </tr>
@@ -299,6 +304,17 @@ require __DIR__ . '/../../includes/header.php';
                                 <span class="badge <?= $statusBadgeClasses[$currentStatus] ?? 'bg-secondary' ?>">
                                     <?= htmlspecialchars($statusLabels[$currentStatus] ?? ucfirst((string) $currentStatus), ENT_QUOTES, 'UTF-8') ?>
                                 </span>
+                            </td>
+                        <?php endif; ?>
+                        <?php if ($hasApplicantResume): ?>
+                            <td>
+                                <?php if (!empty($application['resume_path'])): ?>
+                                    <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($application['resume_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">
+                                        View resume
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted">—</span>
+                                <?php endif; ?>
                             </td>
                         <?php endif; ?>
                         <?php if ($hasApplicantInterviewNotes): ?>
@@ -330,7 +346,7 @@ require __DIR__ . '/../../includes/header.php';
                 <?php endforeach; ?>
                 <?php if (!$applications): ?>
                     <tr>
-                        <td colspan="<?= 2 + ($hasApplicantPosition ? 1 : 0) + ($hasApplicantPhone ? 1 : 0) + ($hasApplicantAppliedAt ? 1 : 0) + ($hasApplicantStatus ? 1 : 0) + ($hasApplicantInterviewNotes ? 1 : 0) ?>" class="text-muted">
+                        <td colspan="<?= 2 + ($hasApplicantPosition ? 1 : 0) + ($hasApplicantPhone ? 1 : 0) + ($hasApplicantAppliedAt ? 1 : 0) + ($hasApplicantStatus ? 1 : 0) + ($hasApplicantResume ? 1 : 0) + ($hasApplicantInterviewNotes ? 1 : 0) ?>" class="text-muted">
                             No applicants yet for this role.
                         </td>
                     </tr>
