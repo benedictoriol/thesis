@@ -12,8 +12,10 @@ $currentUserName = $currentUser['fullname'] ?? 'SYS_ADMIN';
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/app.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-light">
+<body class="app-body">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <span class="navbar-brand">Governance Console</span>
@@ -23,7 +25,7 @@ $currentUserName = $currentUser['fullname'] ?? 'SYS_ADMIN';
         </div>
     </div>
 </nav>
-<div class="container-fluid">
+<div class="container-fluid app-shell">
     <div class="row">
         <aside class="col-lg-2 border-end bg-white min-vh-100 p-3">
             <div class="list-group list-group-flush">

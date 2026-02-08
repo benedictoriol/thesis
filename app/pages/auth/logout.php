@@ -17,7 +17,7 @@ require __DIR__ . '/../../includes/header.php';
 ?>
 <h1 class="h4 mb-3">Logout</h1>
 <p>Are you sure you want to log out?</p>
-<form method="POST">
+<form method="POST" data-confirm="Log out of your account now?" data-confirm-title="Confirm logout">
     <?= csrf_field(); ?>
     <button class="btn btn-danger w-100" type="submit">Logout</button>
 </form>

@@ -178,16 +178,6 @@ CREATE TABLE IF NOT EXISTS dss_logs (
     INDEX idx_dss_logs_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS post_invites (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    post_id INT NOT NULL,
-    shop_id INT NOT NULL,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-    UNIQUE KEY uniq_post_invite (post_id, shop_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS shop_documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     shop_id INT NOT NULL,
@@ -195,6 +185,34 @@ CREATE TABLE IF NOT EXISTS shop_documents (
     file_path VARCHAR(255) NOT NULL,
     uploaded_at DATETIME NOT NULL,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    item_type ENUM('tshirt', 'cap', 'bag', 'logo', 'other') NULL,
+    base_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    turnaround_text VARCHAR(255) NULL,
+    status ENUM('active', 'hidden') NOT NULL DEFAULT 'active',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    image_path VARCHAR(255) NULL,
+    dss_score DECIMAL(10, 4) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    INDEX idx_products_shop (shop_id),
+    INDEX idx_products_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    INDEX idx_product_images_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -291,44 +309,6 @@ CREATE TABLE IF NOT EXISTS shop_step_defaults (
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY uniq_shop_step_default (shop_id, step)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS system_settings (
-    value TEXT NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS dss_global_weights (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    criterion VARCHAR(255) NOT NULL,
-    weight DECIMAL(6, 4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS moderation_actions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    admin_user_id INT NOT NULL,
-    entity VARCHAR(100) NOT NULL,
-    entity_id INT NOT NULL,
-    action VARCHAR(100) NOT NULL,
-    reason TEXT NULL,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS shop_staff (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    shop_id INT NOT NULL,
-    user_id INT NOT NULL,
-    role ENUM('hr', 'employee') NOT NULL,
-    position VARCHAR(255) NULL,
-    status ENUM('active', 'disabled') NOT NULL DEFAULT 'active',
-    can_quote TINYINT(1) NOT NULL DEFAULT 0,
-    can_manage_orders TINYINT(1) NOT NULL DEFAULT 0,
-    can_manage_inventory TINYINT(1) NOT NULL DEFAULT 0,
-    hired_at DATETIME NULL,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY uniq_shop_staff (shop_id, user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS hiring_posts (
@@ -495,6 +475,16 @@ CREATE TABLE IF NOT EXISTS client_posts (
     INDEX idx_client_posts_deadline (deadline_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS post_invites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_post_invite (post_id, shop_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS post_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NOT NULL,
@@ -553,7 +543,7 @@ CREATE TABLE IF NOT EXISTS quote_requests (
 CREATE TABLE IF NOT EXISTS quotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quote_request_id INT NOT NULL,
-    quoted_by_user_id INT NOT NULL,
+    quoted_by_user_id INT NULL,
     price DECIMAL(12, 2) NOT NULL,
     turnaround_days INT NOT NULL,
     notes TEXT NULL,

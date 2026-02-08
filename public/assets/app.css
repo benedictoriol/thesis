@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    color-scheme: light;
+    --app-bg: #f4f6fb;
+    --app-card-bg: #ffffff;
+    --app-border: #e5e8f0;
+    --app-primary: #2f5acf;
+    --app-primary-dark: #2646a4;
+    --app-accent: #23b5d3;
+    --app-text: #1f2430;
+    --app-muted: #6c7488;
+}
+
+body.app-body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top, #f8faff 0%, var(--app-bg) 40%, #eef1f7 100%);
+    color: var(--app-text);
+    min-height: 100vh;
+}
+
+.app-shell {
+    background-color: transparent;
+}
+
+.navbar {
+    box-shadow: 0 10px 30px rgba(31, 36, 48, 0.08);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.card {
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background-color: var(--app-card-bg);
+    box-shadow: 0 18px 40px rgba(31, 36, 48, 0.08);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--app-border);
+    font-weight: 600;
+    background-color: transparent;
+}
+
+.table thead th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-muted);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(47, 90, 207, 0.04);
+}
+
+.btn-primary {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--app-primary-dark);
+    border-color: var(--app-primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--app-primary);
+    border-color: rgba(47, 90, 207, 0.4);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+.btn-success {
+    background-color: #2fb87c;
+    border-color: #2fb87c;
+}
+
+.btn-outline-secondary {
+    border-color: var(--app-border);
+    color: var(--app-muted);
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border-color: var(--app-border);
+    padding: 0.6rem 0.75rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 0.2rem rgba(47, 90, 207, 0.15);
+}
+
+.badge.bg-primary {
+    background-color: var(--app-primary) !important;
+}
+
+.list-group-item.active {
+    background-color: rgba(47, 90, 207, 0.12);
+    color: var(--app-primary-dark);
+    border-color: transparent;
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 12px;
+    border: 1px solid var(--app-border);
+    box-shadow: 0 12px 24px rgba(31, 36, 48, 0.06);
+}
+
+.page-title {
+    font-weight: 600;
+}

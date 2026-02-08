@@ -274,7 +274,7 @@ require __DIR__ . '/../../includes/admin_header.php';
                 <strong>Verification Decision</strong>
             </div>
             <div class="card-body">
-                <form method="post" class="mb-3">
+                <form method="post" class="mb-3" data-confirm="Approve this verification? The shop will be able to operate publicly." data-confirm-title="Approve verification">
                     <?= csrf_field(); ?>
                     <input type="hidden" name="action" value="approve_verification">
                     <div class="mb-3">
@@ -284,7 +284,7 @@ require __DIR__ . '/../../includes/admin_header.php';
                     <button class="btn btn-success w-100" type="submit">Approve Verification</button>
                 </form>
 
-                <form method="post">
+                <form method="post" data-confirm="Reject this verification? The shop will remain hidden." data-confirm-title="Reject verification" data-confirm-button="Yes, reject">
                     <?= csrf_field(); ?>
                     <input type="hidden" name="action" value="reject_verification">
                     <div class="mb-3">
@@ -301,12 +301,12 @@ require __DIR__ . '/../../includes/admin_header.php';
                 <strong>Shop Status</strong>
             </div>
             <div class="card-body">
-                <form method="post" class="mb-2">
+                <form method="post" class="mb-2" data-confirm="Activate this shop and make it visible to clients?" data-confirm-title="Activate shop">
                     <?= csrf_field(); ?>
                     <input type="hidden" name="action" value="activate_shop">
                     <button class="btn btn-primary w-100" type="submit">Activate Shop</button>
                 </form>
-                <form method="post">
+                <form method="post" data-confirm="Suspend this shop? The shop will be hidden until reactivated." data-confirm-title="Suspend shop" data-confirm-button="Yes, suspend">
                     <?= csrf_field(); ?>
                     <input type="hidden" name="action" value="suspend_shop">
                     <button class="btn btn-outline-secondary w-100" type="submit">Suspend Shop</button>

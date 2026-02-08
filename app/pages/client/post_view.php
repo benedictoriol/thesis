@@ -545,7 +545,7 @@ require __DIR__ . '/../../includes/header.php';
             <form method="post">
                 <?= csrf_field(); ?>
                 <input type="hidden" name="action" value="close">
-                <button class="btn btn-outline-danger" type="submit">Close post</button>
+                <button class="btn btn-outline-danger" type="submit" data-confirm="Close this post and stop receiving offers?" data-confirm-title="Close post" data-confirm-button="Yes, close">Close post</button>
             </form>
         </div>
     </div>
@@ -629,13 +629,13 @@ require __DIR__ . '/../../includes/header.php';
                                         <?= csrf_field(); ?>
                                         <input type="hidden" name="action" value="accept_offer">
                                         <input type="hidden" name="offer_id" value="<?= (int) $offer['id'] ?>">
-                                        <button class="btn btn-sm btn-success" type="submit">Accept offer</button>
+                                        <button class="btn btn-sm btn-success" type="submit" data-confirm="Accept this offer and proceed with the order?" data-confirm-title="Accept offer">Accept offer</button>
                                     </form>
                                     <form method="post">
                                         <?= csrf_field(); ?>
                                         <input type="hidden" name="action" value="reject_offer">
                                         <input type="hidden" name="offer_id" value="<?= (int) $offer['id'] ?>">
-                                        <button class="btn btn-sm btn-outline-danger" type="submit">Reject offer</button>
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="Reject this offer? This action cannot be undone." data-confirm-title="Reject offer" data-confirm-button="Yes, reject">Reject offer</button>
                                     </form>
                                     <a class="btn btn-sm btn-outline-dark"
                                        href="/messages?action=start&shop_id=<?= (int) $offer['shop_id'] ?>&context_type=post&context_id=<?= (int) $post['id'] ?>">

@@ -393,7 +393,12 @@ function renderLayers() {
 
 function addLayer(layer) {
     if (layers.length >= maxLayers) {
-        alert(`Maximum of ${maxLayers} layers allowed.`);
+        Swal.fire({
+            title: 'Layer limit reached',
+            text: `Maximum of ${maxLayers} layers allowed.`,
+            icon: 'warning',
+            confirmButtonText: 'Got it',
+        });
         return;
     }
     layers.push(layer);
@@ -421,7 +426,11 @@ imageUpload.addEventListener('change', async () => {
     });
     const data = await response.json();
     if (!data.ok) {
-        alert(data.error || 'Image upload failed.');
+        Swal.fire({
+            title: 'Upload failed',
+            text: data.error || 'Image upload failed.',
+            icon: 'error',
+        });
         return;
     }
     addLayer({
@@ -436,15 +445,23 @@ imageUpload.addEventListener('change', async () => {
     imageUpload.value = '';
 });
 
-addTextBtn.addEventListener('click', () => {
-    const text = prompt('Enter your text layer:');
-    if (!text) {
+addTextBtn.addEventListener('click', async () => {
+    const result = await Swal.fire({
+        title: 'Add text layer',
+        input: 'text',
+        inputLabel: 'Enter your text',
+        inputPlaceholder: 'Type your text here',
+        showCancelButton: true,
+        confirmButtonText: 'Add text',
+    });
+    const textValue = result.value ? result.value.trim() : '';
+    if (!result.isConfirmed || !textValue) {
         return;
     }
     addLayer({
         id: generateLayerId(),
         type: 'text',
-        content: text,
+        content: textValue,
         x: board.clientWidth / 2,
         y: board.clientHeight / 2,
         scale: 1,
@@ -548,11 +565,20 @@ function generatePreview() {
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (layers.length === 0) {
-        alert('Add at least one layer before saving.');
+        Swal.fire({
+            title: 'Nothing to save',
+            text: 'Add at least one layer before saving.',
+            icon: 'info',
+            confirmButtonText: 'Okay',
+        });
         return;
     }
     if (layers.length > maxLayers) {
-        alert(`Maximum of ${maxLayers} layers allowed.`);
+        Swal.fire({
+            title: 'Layer limit reached',
+            text: `Maximum of ${maxLayers} layers allowed.`,
+            icon: 'warning',
+        });
         return;
     }
     layersField.value = JSON.stringify(serializeLayers());

@@ -633,26 +633,26 @@ require __DIR__ . '/../../includes/header.php';
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="accept">
-                        <button type="submit" class="btn btn-outline-success">Accept order</button>
+                        <button type="submit" class="btn btn-outline-success" data-confirm="Accept this order and begin processing?" data-confirm-title="Accept order">Accept order</button>
                     </form>
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="reject">
-                        <button type="submit" class="btn btn-outline-danger">Reject order</button>
+                        <button type="submit" class="btn btn-outline-danger" data-confirm="Reject this order? This action cannot be undone." data-confirm-title="Reject order" data-confirm-button="Yes, reject">Reject order</button>
                     </form>
                 <?php endif; ?>
                 <?php if (in_array($statusValue, ['in_progress', 'accepted'], true)): ?>
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="mark_ready">
-                        <button type="submit" class="btn btn-outline-primary">Mark ready</button>
+                        <button type="submit" class="btn btn-outline-primary" data-confirm="Mark this order as ready for pickup or delivery?" data-confirm-title="Mark ready">Mark ready</button>
                     </form>
                 <?php endif; ?>
                 <?php if ($statusValue === 'ready'): ?>
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="mark_completed">
-                        <button type="submit" class="btn btn-outline-primary">Mark completed</button>
+                        <button type="submit" class="btn btn-outline-primary" data-confirm="Mark this order as completed? This will close the order." data-confirm-title="Mark completed">Mark completed</button>
                     </form>
                 <?php endif; ?>
             </div>
@@ -682,7 +682,7 @@ require __DIR__ . '/../../includes/header.php';
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="remove_assignment">
                                             <input type="hidden" name="assignment_id" value="<?= (int) $assignment['id'] ?>">
-                                            <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="Remove this employee from the order assignment?" data-confirm-title="Remove assignment" data-confirm-button="Yes, remove">Remove</button>
                                         </form>
                                     </li>
                                 <?php endforeach; ?>

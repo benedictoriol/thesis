@@ -216,8 +216,8 @@ require __DIR__ . '/../../includes/header.php';
                             <form method="post" class="d-flex flex-column gap-2 mt-2">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="quote_id" value="<?= (int) $quote['id'] ?>">
-                                <button class="btn btn-sm btn-success" type="submit" name="action" value="accept_quote">Accept quote</button>
-                                <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="reject_quote">Reject quote</button>
+                                <button class="btn btn-sm btn-success" type="submit" name="action" value="accept_quote" data-confirm="Accept this quote and move forward with the order?" data-confirm-title="Accept quote">Accept quote</button>
+                                <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="reject_quote" data-confirm="Reject this quote? This action cannot be undone." data-confirm-title="Reject quote" data-confirm-button="Yes, reject">Reject quote</button>
                             </form>
                         <?php endif; ?>
                     </div>

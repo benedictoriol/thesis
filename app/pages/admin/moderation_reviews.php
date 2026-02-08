@@ -85,7 +85,7 @@ require __DIR__ . '/../../includes/admin_header.php';
                 <strong>Remove review</strong>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" data-confirm="Remove this review? Make sure the ID and reason are correct." data-confirm-title="Remove review" data-confirm-button="Yes, remove">
                     <?= csrf_field(); ?>
                     <div class="mb-3">
                         <label class="form-label">Review ID</label>

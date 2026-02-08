@@ -369,14 +369,14 @@ require __DIR__ . '/../../includes/header.php';
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="cancel">
-                        <button type="submit" class="btn btn-outline-danger">Cancel order</button>
+                        <button type="submit" class="btn btn-outline-danger" data-confirm="Cancel this order? This action cannot be undone." data-confirm-title="Cancel order" data-confirm-button="Yes, cancel">Cancel order</button>
                     </form>
                 <?php endif; ?>
                 <?php if ($statusValue === 'ready'): ?>
                     <form method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="confirm">
-                        <button type="submit" class="btn btn-outline-success">Confirm completion</button>
+                        <button type="submit" class="btn btn-outline-success" data-confirm="Confirm that this order is completed and ready for closure?" data-confirm-title="Confirm completion">Confirm completion</button>
                     </form>
                 <?php endif; ?>
                 <?php if ($statusValue === 'completed'): ?>
