@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../handlers/post_handler.php';
+require_once __DIR__ . '/../../handlers/order_handler.php';
 
 require_role(['client', 'owner', 'hr', 'employee']);
 
@@ -277,6 +278,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'status' => 'pending',
                         'created_at' => gmdate('Y-m-d H:i:s'),
                     ]);
+                    $orderId = (int) db()->lastInsertId();
+                    ensure_order_number($orderId);
+                    log_order_status($orderId, 'pending', 'Order created from accepted offer.', $user['id']);
 
                     db()->commit();
                     flash_set('success', 'Offer accepted. An order has been created.');

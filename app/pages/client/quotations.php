@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
+require_once __DIR__ . '/../../handlers/order_handler.php';
 
 require_role(['client']);
 
@@ -74,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'status' => 'pending',
                         'created_at' => gmdate('Y-m-d H:i:s'),
                     ]);
+                    $orderId = (int) db()->lastInsertId();
+                    ensure_order_number($orderId);
+                    log_order_status($orderId, 'pending', 'Order created from accepted quote.', $user['id']);
 
                     $logStmt = db()->prepare(
                         'INSERT INTO quote_status_logs (quote_id, status, changed_by_user_id, note, created_at)

@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/guard.php';
 require_once __DIR__ . '/../../core/db.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../handlers/order_handler.php';
 
 require_role(['client']);
 
@@ -136,61 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
         }
 
         if ($nextStatus && !$errors) {
-            if (!$statusColumn) {
-                $errors[] = 'Order status is unavailable.';
+            $updated = update_order_status($orderId, $statusValue, $nextStatus, (int) $currentUser['id'], $note);
+            if (!$updated) {
+                $errors[] = 'Unable to update order status right now.';
             } else {
-                try {
-                    $stmt = db()->prepare('UPDATE orders SET ' . $statusColumn . ' = :status WHERE id = :order_id');
-                    $stmt->execute([
-                        'status' => $nextStatus,
-                        'order_id' => $orderId,
-                    ]);
-
-                    if ($orderStatusLogsColumns) {
-                        $logOrderIdColumn = find_column($orderStatusLogsColumns, ['order_id']);
-                        $logStatusColumn = find_column($orderStatusLogsColumns, ['status', 'order_status']);
-                        $logUserColumn = find_column($orderStatusLogsColumns, ['changed_by_user_id', 'user_id']);
-                        $logNoteColumn = find_column($orderStatusLogsColumns, ['note', 'remarks']);
-                        $logCreatedColumn = find_column($orderStatusLogsColumns, ['created_at', 'created_on']);
-
-                        if ($logOrderIdColumn && $logStatusColumn) {
-                            $fields = [$logOrderIdColumn, $logStatusColumn];
-                            $values = [':order_id', ':status'];
-                            $params = [
-                                'order_id' => $orderId,
-                                'status' => $nextStatus,
-                            ];
-
-                            if ($logUserColumn) {
-                                $fields[] = $logUserColumn;
-                                $values[] = ':user_id';
-                                $params['user_id'] = $currentUser['id'];
-                            }
-                            if ($logNoteColumn) {
-                                $fields[] = $logNoteColumn;
-                                $values[] = ':note';
-                                $params['note'] = $note;
-                            }
-                            if ($logCreatedColumn) {
-                                $fields[] = $logCreatedColumn;
-                                $values[] = ':created_at';
-                                $params['created_at'] = gmdate('Y-m-d H:i:s');
-                            }
-
-                            $logStmt = db()->prepare(
-                                'INSERT INTO order_status_logs (' . implode(', ', $fields) . ')
-                                 VALUES (' . implode(', ', $values) . ')'
-                            );
-                            $logStmt->execute($params);
-                        }
-                    }
-
-                    flash_set('success', 'Order updated successfully.');
-                    header('Location: /client/orders/' . $orderId);
-                    exit;
-                } catch (PDOException $exception) {
-                    $errors[] = 'Unable to update order status right now.';
-                }
+                flash_set('success', 'Order updated successfully.');
+                header('Location: /client/orders/' . $orderId);
+                exit;
             }
         }
     }

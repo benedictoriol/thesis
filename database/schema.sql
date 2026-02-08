@@ -521,6 +521,7 @@ CREATE TABLE IF NOT EXISTS quote_status_logs (
 
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    order_number VARCHAR(20) NULL,
     client_user_id INT NOT NULL,
     shop_id INT NOT NULL,
     post_id INT NULL,
@@ -533,6 +534,7 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (post_id) REFERENCES client_posts(id) ON DELETE SET NULL,
     FOREIGN KEY (offer_id) REFERENCES post_offers(id) ON DELETE SET NULL,
     FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL,
+    UNIQUE KEY uniq_orders_number (order_number),
     INDEX idx_orders_client (client_user_id),
     INDEX idx_orders_shop (shop_id),
     INDEX idx_orders_status (status)

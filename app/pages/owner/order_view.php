@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../core/audit.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/staff_helpers.php';
+require_once __DIR__ . '/../../handlers/order_handler.php';
 
 require_role(['owner', 'hr']);
 
@@ -20,53 +21,6 @@ function find_column(array $columns, array $candidates): ?string
     }
 
     return null;
-}
-
-function log_order_status(int $orderId, string $status, ?string $note, int $userId): void
-{
-    if (!table_exists('order_status_logs')) {
-        return;
-    }
-
-    $logColumns = table_columns('order_status_logs');
-    $logOrderIdColumn = find_column($logColumns, ['order_id']);
-    $logStatusColumn = find_column($logColumns, ['status', 'order_status']);
-    $logUserColumn = find_column($logColumns, ['changed_by_user_id', 'user_id']);
-    $logNoteColumn = find_column($logColumns, ['note', 'remarks']);
-    $logCreatedColumn = find_column($logColumns, ['created_at', 'created_on']);
-
-    if (!$logOrderIdColumn || !$logStatusColumn) {
-        return;
-    }
-
-    $fields = [$logOrderIdColumn, $logStatusColumn];
-    $values = [':order_id', ':status'];
-    $params = [
-        'order_id' => $orderId,
-        'status' => $status,
-    ];
-
-    if ($logUserColumn) {
-        $fields[] = $logUserColumn;
-        $values[] = ':user_id';
-        $params['user_id'] = $userId;
-    }
-    if ($logNoteColumn) {
-        $fields[] = $logNoteColumn;
-        $values[] = ':note';
-        $params['note'] = $note;
-    }
-    if ($logCreatedColumn) {
-        $fields[] = $logCreatedColumn;
-        $values[] = ':created_at';
-        $params['created_at'] = gmdate('Y-m-d H:i:s');
-    }
-
-    $stmt = db()->prepare(
-        'INSERT INTO order_status_logs (' . implode(', ', $fields) . ')
-         VALUES (' . implode(', ', $values) . ')'
-    );
-    $stmt->execute($params);
 }
 
 $currentUser = current_user();
@@ -366,43 +320,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $order && !$errors) {
         }
 
         if ($nextStatus && !$errors) {
-            if (!$statusColumn) {
-                $errors[] = 'Order status is unavailable.';
+            $updated = update_order_status($orderId, $statusValue, $nextStatus, (int) $currentUser['id'], $note);
+            if (!$updated) {
+                $errors[] = 'Unable to update order status right now.';
             } else {
-                try {
-                    $stmt = db()->prepare('UPDATE orders SET ' . $statusColumn . ' = :status WHERE id = :order_id');
-                    $stmt->execute([
-                        'status' => $nextStatus,
-                        'order_id' => $orderId,
-                    ]);
-
-                    log_order_status($orderId, $nextStatus, $note, $currentUser['id']);
-
-                    if ($shop) {
-                        $auditMeta = [
-                            'shop_id' => $shop['id'],
-                            'from_status' => $statusValue,
-                            'to_status' => $nextStatus,
-                        ];
-                        if ($note) {
-                            $auditMeta['note'] = $note;
-                        }
-
-                        if ($action === 'accept') {
-                            audit_log((int) $currentUser['id'], 'approve_order', 'orders', $orderId, $auditMeta);
-                        } elseif ($action === 'reject') {
-                            audit_log((int) $currentUser['id'], 'reject_order', 'orders', $orderId, $auditMeta);
-                        }
-
-                        audit_log((int) $currentUser['id'], 'order_status_change', 'orders', $orderId, $auditMeta);
+                if ($shop) {
+                    $auditMeta = [
+                        'shop_id' => $shop['id'],
+                        'from_status' => $statusValue,
+                        'to_status' => $nextStatus,
+                    ];
+                    if ($note) {
+                        $auditMeta['note'] = $note;
                     }
 
-                    flash_set('success', 'Order updated successfully.');
-                    header('Location: /owner/orders/' . $orderId);
-                    exit;
-                } catch (PDOException $exception) {
-                    $errors[] = 'Unable to update order status right now.';
+                        if ($action === 'accept') {
+                        audit_log((int) $currentUser['id'], 'approve_order', 'orders', $orderId, $auditMeta);
+                    } elseif ($action === 'reject') {
+                        audit_log((int) $currentUser['id'], 'reject_order', 'orders', $orderId, $auditMeta);
+                    }
+
+                    audit_log((int) $currentUser['id'], 'order_status_change', 'orders', $orderId, $auditMeta);
                 }
+                
+                flash_set('success', 'Order updated successfully.');
+                header('Location: /owner/orders/' . $orderId);
+                exit;
             }
         }
     }
