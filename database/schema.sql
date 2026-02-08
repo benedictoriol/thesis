@@ -204,6 +204,34 @@ CREATE TABLE IF NOT EXISTS categories (
     FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS shop_portfolio (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shop_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    category_id INT NULL,
+    status ENUM('active', 'hidden') NOT NULL DEFAULT 'active',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    image_path VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    INDEX idx_shop_portfolio_shop (shop_id),
+    INDEX idx_shop_portfolio_category (category_id),
+    INDEX idx_shop_portfolio_status (status),
+    INDEX idx_shop_portfolio_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS shop_portfolio_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    portfolio_id INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (portfolio_id) REFERENCES shop_portfolio(id) ON DELETE CASCADE,
+    INDEX idx_portfolio_images_portfolio (portfolio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS system_settings (
     `key` VARCHAR(100) PRIMARY KEY,
     value TEXT NOT NULL
