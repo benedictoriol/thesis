@@ -2,9 +2,9 @@
 
 require_once __DIR__ . '/../../../core/guard.php';
 require_once __DIR__ . '/../../../core/db.php';
-require_once __DIR__ . '/../../../core/audit.php';
 require_once __DIR__ . '/../../../includes/csrf.php';
 require_once __DIR__ . '/../../../includes/staff_helpers.php';
+require_once __DIR__ . '/../../../handlers/quote_handler.php';
 
 require_role(['owner', 'hr']);
 
@@ -16,6 +16,13 @@ $design = null;
 $designLayers = [];
 $quotes = [];
 $successMessage = '';
+$suggestedPricing = null;
+$formValues = [
+    'price' => '',
+    'turnaround_days' => '',
+    'validity_days' => '',
+    'notes' => '',
+];
 
 $shop = load_shop_for_staff_user($currentUser);
 if (!$shop) {
@@ -113,6 +120,13 @@ if ($request) {
 $latestQuote = $quotes[0] ?? null;
 $isLocked = $request && ($request['status'] === 'accepted' || ($latestQuote && $latestQuote['status'] === 'accepted'));
 
+if ($request) {
+    $suggestedPricing = suggest_price($request, $design, $designLayers);
+    if ($suggestedPricing['suggested_price'] > 0) {
+        $formValues['price'] = number_format((float) $suggestedPricing['suggested_price'], 2, '.', '');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
     if (!csrf_verify()) {
         $errors[] = 'Invalid security token. Please try again.';
@@ -123,10 +137,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
     } elseif ($latestQuote) {
         $errors[] = 'This request already has a quote. Use revise instead.';
     } else {
-        $price = (float) ($_POST['price'] ?? 0);
-        $turnaroundDays = (int) ($_POST['turnaround_days'] ?? 0);
-        $notes = trim($_POST['notes'] ?? '');
-        $validityDays = (int) ($_POST['validity_days'] ?? 0);
+        $formValues['price'] = trim((string) ($_POST['price'] ?? ''));
+        $formValues['turnaround_days'] = trim((string) ($_POST['turnaround_days'] ?? ''));
+        $formValues['validity_days'] = trim((string) ($_POST['validity_days'] ?? ''));
+        $formValues['notes'] = trim((string) ($_POST['notes'] ?? ''));
+
+        $price = (float) $formValues['price'];
+        $turnaroundDays = (int) $formValues['turnaround_days'];
+        $notes = $formValues['notes'];
+        $validityDays = (int) $formValues['validity_days'];
 
         if ($price <= 0) {
             $errors[] = 'Price must be greater than zero.';
@@ -136,71 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request) {
         }
 
         if (!$errors) {
-            $validUntil = null;
-            if ($validityDays > 0) {
-                $validUntil = gmdate('Y-m-d H:i:s', strtotime('+' . $validityDays . ' days'));
-            }
-
             try {
-                db()->beginTransaction();
-                $stmt = db()->prepare(
-                    'INSERT INTO quotes
-                        (quote_request_id, quoted_by_user_id, price, turnaround_days, notes, valid_until, status, created_at)
-                     VALUES
-                        (:quote_request_id, :quoted_by_user_id, :price, :turnaround_days, :notes, :valid_until, :status, :created_at)'
-                );
-                $stmt->execute([
-                    'quote_request_id' => $requestId,
-                    'quoted_by_user_id' => $currentUser['id'],
-                    'price' => $price,
-                    'turnaround_days' => $turnaroundDays,
-                    'notes' => $notes !== '' ? $notes : null,
-                    'valid_until' => $validUntil,
-                    'status' => 'sent',
-                    'created_at' => gmdate('Y-m-d H:i:s'),
-                ]);
-                $quoteId = (int) db()->lastInsertId();
-
-                $stmt = db()->prepare(
-                    'UPDATE quote_requests SET status = :status WHERE id = :id'
-                );
-                $stmt->execute([
-                    'status' => 'quoted',
-                    'id' => $requestId,
-                ]);
-
-                $logStmt = db()->prepare(
-                    'INSERT INTO quote_status_logs (quote_id, status, changed_by_user_id, note, created_at)
-                     VALUES (:quote_id, :status, :changed_by_user_id, :note, :created_at)'
-                );
-                $logStmt->execute([
-                    'quote_id' => $quoteId,
-                    'status' => 'sent',
-                    'changed_by_user_id' => $currentUser['id'],
-                    'note' => $notes !== '' ? $notes : null,
-                    'created_at' => gmdate('Y-m-d H:i:s'),
-                ]);
-
-                audit_log(
-                    (int) $currentUser['id'],
-                    'create_quote',
-                    'quotes',
-                    $quoteId,
-                    [
-                        'shop_id' => $shop['id'],
-                        'request_id' => $requestId,
-                        'price' => $price,
-                        'turnaround_days' => $turnaroundDays,
-                        'valid_until' => $validUntil,
-                    ]
-                );
-
-                db()->commit();
+                create_quote($request, $currentUser, $price, $turnaroundDays, $notes, $validityDays);
                 $successMessage = 'Quote sent successfully.';
                 header('Location: /hr/quotes/requests/' . $requestId);
                 exit;
             } catch (Throwable $exception) {
-                db()->rollBack();
                 $errors[] = 'Unable to send the quote right now.';
             }
         }
@@ -357,19 +317,52 @@ require __DIR__ . '/../../../includes/header.php';
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label" for="price">Price</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" required>
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                class="form-control"
+                                id="price"
+                                name="price"
+                                value="<?= htmlspecialchars($formValues['price'], ENT_QUOTES, 'UTF-8') ?>"
+                                required
+                            >
+                            <?php if ($suggestedPricing && $suggestedPricing['suggested_price'] > 0): ?>
+                                <div class="form-text">
+                                    Suggested: ₱<?= number_format((float) $suggestedPricing['suggested_price'], 2) ?>
+                                    (base ₱<?= number_format((float) $suggestedPricing['base_price'], 2) ?> +
+                                    ₱<?= number_format((float) $suggestedPricing['variants_total'], 2) ?> variants +
+                                    ₱<?= number_format((float) $suggestedPricing['addons_total'], 2) ?> add-ons
+                                    × <?= number_format((float) $suggestedPricing['complexity_multiplier'], 2) ?> complexity).
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="turnaround_days">Turnaround days</label>
-                            <input type="number" min="1" class="form-control" id="turnaround_days" name="turnaround_days" required>
+                            <input
+                                type="number"
+                                min="1"
+                                class="form-control"
+                                id="turnaround_days"
+                                name="turnaround_days"
+                                value="<?= htmlspecialchars($formValues['turnaround_days'], ENT_QUOTES, 'UTF-8') ?>"
+                                required
+                            >
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="validity_days">Validity days (optional)</label>
-                            <input type="number" min="1" class="form-control" id="validity_days" name="validity_days">
+                            <input
+                                type="number"
+                                min="1"
+                                class="form-control"
+                                id="validity_days"
+                                name="validity_days"
+                                value="<?= htmlspecialchars($formValues['validity_days'], ENT_QUOTES, 'UTF-8') ?>"
+                            >
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="notes">Notes</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"><?= htmlspecialchars($formValues['notes'], ENT_QUOTES, 'UTF-8') ?></textarea>
                         </div>
                     </div>
                     <button class="btn btn-primary mt-3" type="submit">Send quote</button>
