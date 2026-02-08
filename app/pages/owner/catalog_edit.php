@@ -166,23 +166,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
         foreach ($variantRows as $variant) {
             if ($variant['name'] === '') {
-                $errors[] = 'Variant name is required when adding a variant.';
+                $errors[] = 'Size option name is required when adding a size.';
             }
             if ($variant['price'] === null) {
-                $errors[] = 'Variant price must be a number.';
+                $errors[] = 'Size option price must be a number.';
             } elseif ($variant['price'] < 0) {
-                $errors[] = 'Variant price must be 0 or higher.';
+                $errors[] = 'Size option price must be 0 or higher.';
             }
         }
 
         foreach ($addonRows as $addon) {
             if ($addon['name'] === '') {
-                $errors[] = 'Add-on name is required when adding an add-on.';
+                $errors[] = 'Design/font option name is required when adding a design option.';
             }
             if ($addon['price'] === null) {
-                $errors[] = 'Add-on price must be a number.';
+                $errors[] = 'Design/font option price must be a number.';
             } elseif ($addon['price'] < 0) {
-                $errors[] = 'Add-on price must be 0 or higher.';
+                $errors[] = 'Design/font option price must be 0 or higher.';
             }
         }
 
@@ -295,7 +295,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 }
 
 if (!$variantRows) {
-    $variantRows = array_fill(0, 3, ['name' => '', 'price_add' => '']);
+    $variantRows = [
+        ['name' => '2x2', 'price_add' => ''],
+        ['name' => '2x3', 'price_add' => ''],
+        ['name' => '', 'price_add' => ''],
+    ];
 }
 
 if (!$addonRows) {
@@ -372,30 +376,30 @@ require __DIR__ . '/../../includes/header.php';
                 <?php endif; ?>
 
                 <div class="mt-4">
-                    <h2 class="h6">Variants</h2>
-                    <p class="text-muted small">Add optional variants (e.g., sizes, materials) with price adjustments.</p>
+                    <h2 class="h6">Sizes</h2>
+                    <p class="text-muted small">Add size options (default: 2x2, 2x3) with their own prices.</p>
                     <?php foreach ($variantRows as $variant): ?>
                         <div class="row g-2 mb-2">
                             <div class="col-md-8">
-                                <input class="form-control" type="text" name="variant_name[]" placeholder="Variant name" value="<?= htmlspecialchars((string) ($variant['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                <input class="form-control" type="text" name="variant_name[]" placeholder="Size option" value="<?= htmlspecialchars((string) ($variant['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="col-md-4">
-                                <input class="form-control" type="number" name="variant_price[]" min="0" step="0.01" placeholder="Price add" value="<?= htmlspecialchars((string) ($variant['price_add'] ?? $variant['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                <input class="form-control" type="number" name="variant_price[]" min="0" step="0.01" placeholder="Size price" value="<?= htmlspecialchars((string) ($variant['price_add'] ?? $variant['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
 
                 <div class="mt-4">
-                    <h2 class="h6">Add-ons</h2>
-                    <p class="text-muted small">Add optional extras (e.g., rush service, packaging) with their own prices.</p>
+                    <h2 class="h6">Design/Font Options</h2>
+                    <p class="text-muted small">Add design or font choices and set the price for each option.</p>
                     <?php foreach ($addonRows as $addon): ?>
                         <div class="row g-2 mb-2">
                             <div class="col-md-8">
-                                <input class="form-control" type="text" name="addon_name[]" placeholder="Add-on name" value="<?= htmlspecialchars((string) ($addon['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                <input class="form-control" type="text" name="addon_name[]" placeholder="Design option" value="<?= htmlspecialchars((string) ($addon['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="col-md-4">
-                                <input class="form-control" type="number" name="addon_price[]" min="0" step="0.01" placeholder="Add-on price" value="<?= htmlspecialchars((string) ($addon['addon_price'] ?? $addon['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                <input class="form-control" type="number" name="addon_price[]" min="0" step="0.01" placeholder="Design price" value="<?= htmlspecialchars((string) ($addon['addon_price'] ?? $addon['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                     <?php endforeach; ?>
