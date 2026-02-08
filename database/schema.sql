@@ -556,12 +556,28 @@ CREATE TABLE IF NOT EXISTS order_status_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     status VARCHAR(50) NOT NULL,
-    note TEXT NULL,
     changed_by_user_id INT NULL,
+    note TEXT NULL,
     created_at DATETIME NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (changed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_order_status_logs_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS system_jobs_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_name VARCHAR(150) NOT NULL,
+    ran_at DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    details_json JSON NULL,
+    INDEX idx_system_jobs_log_job (job_name),
+    INDEX idx_system_jobs_log_ran (ran_at),
+    INDEX idx_system_jobs_log_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS automation_settings (
+    `key` VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS order_assignments (
