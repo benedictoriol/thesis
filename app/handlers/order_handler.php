@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/notifications.php';
+require_once __DIR__ . '/../handlers/inventory_handler.php';
 
 function order_table_columns(string $table): array
 {
@@ -225,6 +226,9 @@ function update_order_status(
 
         log_order_status($orderId, $normalizedTo, $note, $userId);
         notify_client_order_status($orderId, $normalizedTo, $note);
+        if ($normalizedTo === 'in_progress') {
+            consume_materials($orderId);
+        }
         return true;
     } catch (PDOException $exception) {
         return false;
